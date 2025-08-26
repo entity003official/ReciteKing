@@ -15,6 +15,14 @@
 - 📱 **多平台**：支持Python桌面版和Web移动版
 - 🔄 **数据分离**：CSV数据文件，易于修改和扩展
 
+### 🚀 快速开始
+
+### 🌐 在线体验
+
+直接访问：**[https://entity003official.github.io/ReciteKing/](https://entity003official.github.io/ReciteKing/)**
+
+支持PWA，可添加到手机桌面！
+
 ### Python桌面版
 
 ```bash
