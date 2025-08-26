@@ -181,10 +181,175 @@
             padding: 20px;
             border-radius: 12px;
             margin-bottom: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .settings h3 {
             margin-bottom: 15px;
+            color: #333;
+        }
+
+        .setting-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .setting-section:last-child {
+            border-bottom: none;
+        }
+
+        .setting-section h4 {
+            margin-bottom: 15px;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .setting-section label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .setting-section select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1em;
+            margin-bottom: 5px;
+        }
+
+        .setting-section small {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .quick-select-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-select-buttons .btn {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .collapsible-section {
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f5f5f5;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .section-header:hover {
+            background: #ebebeb;
+        }
+
+        .section-header input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .section-header label {
+            flex: 1;
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .collapse-icon {
+            font-size: 12px;
+            transition: transform 0.2s;
+            margin-left: 10px;
+        }
+
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 15px;
+            background: white;
+            max-height: 300px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .section-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            overflow: hidden;
+        }
+
+        .kana-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+        }
+
+        .kana-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 4px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .kana-item:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .kana-item.selected {
+            border-color: #667eea;
+            background: #e6f0ff;
+        }
+
+        .kana-item input[type="checkbox"] {
+            margin-bottom: 4px;
+            width: 16px;
+            height: 16px;
+        }
+
+        .kana-char {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .kana-romaji {
+            font-size: 0.8em;
+            color: #666;
+        }
+
+        .selected-count {
+            text-align: center;
+            padding: 10px;
+            background: #e6f0ff;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
             color: #333;
         }
 
@@ -226,6 +391,36 @@
             .options {
                 grid-template-columns: 1fr;
             }
+            
+            .kana-grid {
+                grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+                gap: 6px;
+            }
+            
+            .kana-item {
+                padding: 6px 3px;
+            }
+            
+            .kana-char {
+                font-size: 1.1em;
+            }
+            
+            .kana-romaji {
+                font-size: 0.75em;
+            }
+            
+            .quick-select-buttons {
+                justify-content: center;
+            }
+            
+            .quick-select-buttons .btn {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+            
+            .section-content {
+                max-height: 200px;
+            }
         }
     </style>
 </head>
@@ -233,42 +428,135 @@
     <div class="container">
         <!-- 设置面板 -->
         <div class="card settings" id="settingsPanel">
-            <h3>选择练习类型</h3>
-            <div class="checkbox-group">
-                <div class="checkbox-item">
-                    <input type="checkbox" id="hiragana" checked>
-                    <label for="hiragana">平假名</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="katakana" checked>
-                    <label for="katakana">片假名</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="dakuten" checked>
-                    <label for="dakuten">浊音</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="handakuten" checked>
-                    <label for="handakuten">半浊音</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="youon" checked>
-                    <label for="youon">拗音</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="youon_dakuten" checked>
-                    <label for="youon_dakuten">浊音拗音</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="youon_handakuten" checked>
-                    <label for="youon_handakuten">半浊音拗音</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="chouon" checked>
-                    <label for="chouon">长音</label>
+            <h3>练习设置</h3>
+            
+            <!-- 重复次数设置 -->
+            <div class="setting-section">
+                <label for="targetScore">背诵重复次数：</label>
+                <select id="targetScore">
+                    <option value="1">1次</option>
+                    <option value="2" selected>2次</option>
+                    <option value="3">3次</option>
+                    <option value="4">4次</option>
+                    <option value="5">5次</option>
+                </select>
+                <small>连续答对指定次数后该假名不再出现</small>
+            </div>
+
+            <!-- 快速选择 -->
+            <div class="setting-section">
+                <h4>快速选择</h4>
+                <div class="quick-select-buttons">
+                    <button class="btn btn-secondary" onclick="selectAll()">全选</button>
+                    <button class="btn btn-secondary" onclick="selectNone()">全不选</button>
+                    <button class="btn btn-secondary" onclick="selectBasic()">基础假名</button>
+                    <button class="btn btn-secondary" onclick="selectAdvanced()">进阶假名</button>
                 </div>
             </div>
+
+            <!-- 详细选择 -->
+            <div class="setting-section">
+                <h4>详细选择练习内容</h4>
+                
+                <!-- 平假名 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('hiragana-section')">
+                        <input type="checkbox" id="hiragana" checked onchange="toggleCategory('hiragana')">
+                        <label for="hiragana">平假名 (46个)</label>
+                        <span class="collapse-icon" id="hiragana-icon">▼</span>
+                    </div>
+                    <div class="section-content" id="hiragana-section">
+                        <div class="kana-grid" id="hiragana-grid"></div>
+                    </div>
+                </div>
+
+                <!-- 片假名 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('katakana-section')">
+                        <input type="checkbox" id="katakana" checked onchange="toggleCategory('katakana')">
+                        <label for="katakana">片假名 (46个)</label>
+                        <span class="collapse-icon" id="katakana-icon">▼</span>
+                    </div>
+                    <div class="section-content" id="katakana-section">
+                        <div class="kana-grid" id="katakana-grid"></div>
+                    </div>
+                </div>
+
+                <!-- 浊音 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('dakuten-section')">
+                        <input type="checkbox" id="dakuten" checked onchange="toggleCategory('dakuten')">
+                        <label for="dakuten">浊音 (40个)</label>
+                        <span class="collapse-icon" id="dakuten-icon">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="dakuten-section">
+                        <div class="kana-grid" id="dakuten-grid"></div>
+                    </div>
+                </div>
+
+                <!-- 半浊音 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('handakuten-section')">
+                        <input type="checkbox" id="handakuten" checked onchange="toggleCategory('handakuten')">
+                        <label for="handakuten">半浊音 (10个)</label>
+                        <span class="collapse-icon" id="handakuten-icon">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="handakuten-section">
+                        <div class="kana-grid" id="handakuten-grid"></div>
+                    </div>
+                </div>
+
+                <!-- 拗音 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('youon-section')">
+                        <input type="checkbox" id="youon" checked onchange="toggleCategory('youon')">
+                        <label for="youon">拗音 (36个)</label>
+                        <span class="collapse-icon" id="youon-icon">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="youon-section">
+                        <div class="kana-grid" id="youon-grid"></div>
+                    </div>
+                </div>
+
+                <!-- 浊音拗音 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('youon_dakuten-section')">
+                        <input type="checkbox" id="youon_dakuten" checked onchange="toggleCategory('youon_dakuten')">
+                        <label for="youon_dakuten">浊音拗音 (12个)</label>
+                        <span class="collapse-icon" id="youon_dakuten-icon">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="youon_dakuten-section">
+                        <div class="kana-grid" id="youon_dakuten-grid"></div>
+                    </div>
+                </div>
+
+                <!-- 半浊音拗音 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('youon_handakuten-section')">
+                        <input type="checkbox" id="youon_handakuten" checked onchange="toggleCategory('youon_handakuten')">
+                        <label for="youon_handakuten">半浊音拗音 (6个)</label>
+                        <span class="collapse-icon" id="youon_handakuten-icon">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="youon_handakuten-section">
+                        <div class="kana-grid" id="youon_handakuten-grid"></div>
+                    </div>
+                </div>
+
+                <!-- 长音 -->
+                <div class="collapsible-section">
+                    <div class="section-header" onclick="toggleSection('chouon-section')">
+                        <input type="checkbox" id="chouon" checked onchange="toggleCategory('chouon')">
+                        <label for="chouon">长音 (79个)</label>
+                        <span class="collapse-icon" id="chouon-icon">▼</span>
+                    </div>
+                    <div class="section-content collapsed" id="chouon-section">
+                        <div class="kana-grid" id="chouon-grid"></div>
+                    </div>
+                </div>
+            </div>
+
             <div class="controls">
+                <div class="selected-count">已选择：<span id="selectedCount">275</span> 个假名</div>
                 <button class="btn btn-primary" onclick="startGame()">开始练习</button>
             </div>
         </div>

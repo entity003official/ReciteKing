@@ -2,6 +2,7 @@
 let gameState = {
     kanaMap: {},
     scoreMap: {},
+    selectedKanas: new Set(),
     currentKana: null,
     currentOptions: [],
     targetScore: 2,
@@ -21,6 +22,169 @@ const nextBtn = document.getElementById('nextBtn');
 const completedCount = document.getElementById('completedCount');
 const totalCount = document.getElementById('totalCount');
 const progressFill = document.getElementById('progressFill');
+const selectedCount = document.getElementById('selectedCount');
+const targetScoreSelect = document.getElementById('targetScore');
+
+// 初始化页面
+document.addEventListener('DOMContentLoaded', function() {
+    initializeKanaGrids();
+    updateSelectedCount();
+});
+
+// 初始化假名网格
+function initializeKanaGrids() {
+    Object.keys(kanaData).forEach(category => {
+        const grid = document.getElementById(`${category}-grid`);
+        if (grid) {
+            grid.innerHTML = '';
+            Object.entries(kanaData[category]).forEach(([kana, romaji]) => {
+                const kanaItem = createKanaItem(kana, romaji, category);
+                grid.appendChild(kanaItem);
+                gameState.selectedKanas.add(kana); // 默认全选
+            });
+        }
+    });
+}
+
+// 创建假名项目
+function createKanaItem(kana, romaji, category) {
+    const item = document.createElement('div');
+    item.className = 'kana-item selected';
+    item.innerHTML = `
+        <input type="checkbox" checked onchange="toggleKana('${kana}', this)">
+        <div class="kana-char">${kana}</div>
+        <div class="kana-romaji">${romaji}</div>
+    `;
+    
+    item.onclick = function(e) {
+        if (e.target.type !== 'checkbox') {
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+            toggleKana(kana, checkbox);
+        }
+    };
+    
+    return item;
+}
+
+// 切换单个假名的选择状态
+function toggleKana(kana, checkbox) {
+    const item = checkbox.closest('.kana-item');
+    if (checkbox.checked) {
+        gameState.selectedKanas.add(kana);
+        item.classList.add('selected');
+    } else {
+        gameState.selectedKanas.delete(kana);
+        item.classList.remove('selected');
+    }
+    updateCategoryCheckbox(kana);
+    updateSelectedCount();
+}
+
+// 更新分类复选框状态
+function updateCategoryCheckbox(kana) {
+    for (const [category, kanas] of Object.entries(kanaData)) {
+        if (kanas[kana]) {
+            const categoryCheckbox = document.getElementById(category);
+            const categoryKanas = Object.keys(kanas);
+            const selectedCategoryKanas = categoryKanas.filter(k => gameState.selectedKanas.has(k));
+            
+            if (selectedCategoryKanas.length === 0) {
+                categoryCheckbox.checked = false;
+                categoryCheckbox.indeterminate = false;
+            } else if (selectedCategoryKanas.length === categoryKanas.length) {
+                categoryCheckbox.checked = true;
+                categoryCheckbox.indeterminate = false;
+            } else {
+                categoryCheckbox.checked = false;
+                categoryCheckbox.indeterminate = true;
+            }
+            break;
+        }
+    }
+}
+
+// 切换分类选择
+function toggleCategory(category) {
+    const checkbox = document.getElementById(category);
+    const kanas = Object.keys(kanaData[category]);
+    const grid = document.getElementById(`${category}-grid`);
+    
+    kanas.forEach(kana => {
+        const kanaCheckbox = grid.querySelector(`input[onchange*="${kana}"]`);
+        const kanaItem = kanaCheckbox.closest('.kana-item');
+        
+        if (checkbox.checked) {
+            gameState.selectedKanas.add(kana);
+            kanaCheckbox.checked = true;
+            kanaItem.classList.add('selected');
+        } else {
+            gameState.selectedKanas.delete(kana);
+            kanaCheckbox.checked = false;
+            kanaItem.classList.remove('selected');
+        }
+    });
+    
+    checkbox.indeterminate = false;
+    updateSelectedCount();
+}
+
+// 切换折叠区域
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const icon = document.getElementById(sectionId.replace('-section', '-icon'));
+    
+    section.classList.toggle('collapsed');
+    icon.classList.toggle('collapsed');
+}
+
+// 快速选择函数
+function selectAll() {
+    Object.keys(kanaData).forEach(category => {
+        const checkbox = document.getElementById(category);
+        if (checkbox) {
+            checkbox.checked = true;
+            toggleCategory(category);
+        }
+    });
+}
+
+function selectNone() {
+    Object.keys(kanaData).forEach(category => {
+        const checkbox = document.getElementById(category);
+        if (checkbox) {
+            checkbox.checked = false;
+            toggleCategory(category);
+        }
+    });
+}
+
+function selectBasic() {
+    selectNone();
+    ['hiragana', 'katakana'].forEach(category => {
+        const checkbox = document.getElementById(category);
+        if (checkbox) {
+            checkbox.checked = true;
+            toggleCategory(category);
+        }
+    });
+}
+
+function selectAdvanced() {
+    selectNone();
+    ['dakuten', 'handakuten', 'youon', 'youon_dakuten', 'youon_handakuten'].forEach(category => {
+        const checkbox = document.getElementById(category);
+        if (checkbox) {
+            checkbox.checked = true;
+            toggleCategory(category);
+        }
+    });
+}
+
+// 更新选中计数
+function updateSelectedCount() {
+    selectedCount.textContent = gameState.selectedKanas.size;
+}
 
 // 显示设置面板
 function showSettings() {
@@ -31,25 +195,23 @@ function showSettings() {
 
 // 开始游戏
 function startGame() {
-    // 获取选中的类型
-    const enabledTypes = [];
-    const checkboxes = settingsPanel.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            enabledTypes.push(checkbox.id);
-        }
-    });
-
-    if (enabledTypes.length === 0) {
-        alert('请至少选择一种练习类型');
+    // 检查是否选择了假名
+    if (gameState.selectedKanas.size === 0) {
+        alert('请至少选择一个假名进行练习');
         return;
     }
 
-    // 构建假名映射
+    // 获取目标分数
+    gameState.targetScore = parseInt(targetScoreSelect.value);
+
+    // 构建假名映射（仅包含选中的假名）
     gameState.kanaMap = {};
-    enabledTypes.forEach(type => {
-        if (kanaData[type]) {
-            Object.assign(gameState.kanaMap, kanaData[type]);
+    gameState.selectedKanas.forEach(kana => {
+        for (const [category, kanas] of Object.entries(kanaData)) {
+            if (kanas[kana]) {
+                gameState.kanaMap[kana] = kanas[kana];
+                break;
+            }
         }
     });
 
