@@ -1,0 +1,145 @@
+# 假名背诵王 (ReciteKing)
+
+🎌 一个优雅的日语假名背诵练习应用，支持Python桌面版和Web移动版本。
+
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Platform](https://img.shields.io/badge/platform-Python%20%7C%20Web%20%7C%20Android-lightgrey.svg)
+![Language](https://img.shields.io/badge/language-Python%20%7C%20JavaScript-green.svg)
+
+## ✨ 功能特点
+
+- 🎯 **全面覆盖**：支持平假名、片假名、浊音、半浊音、拗音、长音等
+- 🎮 **智能练习**：4选1选择题，随机出题，智能干扰项
+- 📊 **进度追踪**：实时显示学习进度，达标自动移除
+- ⚙️ **灵活配置**：可选择不同类型的假名进行练习
+- 📱 **多平台**：支持Python桌面版和Web移动版
+- 🔄 **数据分离**：CSV数据文件，易于修改和扩展
+
+## 🚀 快速开始
+
+### Python桌面版
+
+```bash
+# 运行程序
+python demo.py
+
+# 或修改配置后运行
+# 编辑 config.txt 选择练习类型
+python demo.py
+```
+
+### Web移动版
+
+```bash
+# 启动本地服务器
+cd web
+python -m http.server 8000
+
+# 或直接运行批处理文件
+web/start_server.bat
+```
+
+然后在浏览器访问 `http://localhost:8000`
+
+## 📱 移动端使用
+
+### PWA方式（推荐）
+1. 用手机浏览器访问应用
+2. 选择"添加到主屏幕"
+3. 像原生应用一样使用
+
+### APK打包
+详细步骤请参考 [BUILD_GUIDE.md](BUILD_GUIDE.md)
+- ✅ 达标移除机制：连续答对指定次数后不再出现
+- ✅ 随机出题和选项打乱
+
+## 使用方法
+
+1. **运行程序**
+
+   ```bash
+   python demo.py
+   ```
+
+2. **根据提示选择正确的罗马音选项**
+   - 输入选项编号（1-4）
+   - 答对会获得1分，答错会减1分
+   - 连续答对2次（默认设置）的假名会被标记为"达标"并不再出现
+
+3. **完成所有假名的学习**
+   - 当所有假名都达标后，程序会显示恭喜信息并结束
+
+## 配置文件说明
+
+编辑 `config.txt` 可以自定义练习内容：
+
+```ini
+[练习类型]
+hiragana = True          # 平假名
+katakana = True          # 片假名  
+dakuten = True           # 浊音
+handakuten = True        # 半浊音
+youon = True             # 拗音
+youon_dakuten = True     # 浊音拗音
+youon_handakuten = True  # 半浊音拗音
+chouon = True            # 长音
+
+[游戏设置]
+target_score = 2         # 达标分数（连续答对几次后移除）
+option_count = 4         # 选择题选项数量
+```
+
+将对应项目设置为 `False` 可以禁用某个类型的假名练习。
+
+## 数据文件格式
+
+`kana_data.csv` 的格式为：
+
+```csv
+kana,romaji,type
+あ,a,hiragana
+い,i,hiragana
+カ,ka,katakana
+...
+```
+
+- `kana`: 假名字符
+- `romaji`: 对应的罗马音
+- `type`: 假名类型（hiragana, katakana, dakuten, handakuten, youon, youon_dakuten, youon_handakuten, chouon）
+
+## 假名类型说明
+
+- **hiragana**: 平假名基础音（あいうえお...）
+- **katakana**: 片假名基础音（アイウエオ...）
+- **dakuten**: 浊音（がざだば...）
+- **handakuten**: 半浊音（ぱぴぷぺぽ...）
+- **youon**: 拗音（きゃしゅちょ...）
+- **youon_dakuten**: 浊音拗音（ぎゃじゅびょ...）
+- **youon_handakuten**: 半浊音拗音（ぴゃぴゅぴょ...）
+- **chouon**: 长音（あーいーうー...）
+
+## 自定义学习内容
+
+如果你想添加新的假名或修改现有数据：
+
+1. 编辑 `kana_data.csv` 文件
+2. 按照格式添加新行或修改现有行
+3. 重新运行程序即可
+
+## 系统要求
+
+- Python 3.6+
+- 支持UTF-8编码的终端
+
+## 开发说明
+
+程序从原C++版本转换而来，保持了相同的核心逻辑，但增加了以下改进：
+
+- 数据和代码分离，便于维护
+- 可配置的学习内容
+- 更好的错误处理
+- 更灵活的扩展性
+
+## 许可证
+
+此项目仅用于学习目的。

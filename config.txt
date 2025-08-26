@@ -1,0 +1,16 @@
+# 假名背诵程序配置文件
+# 设置 True 启用，False 禁用
+
+[练习类型]
+hiragana = True          # 平假名
+katakana = True          # 片假名
+dakuten = True           # 浊音
+handakuten = True        # 半浊音
+youon = True             # 拗音
+youon_dakuten = True     # 浊音拗音
+youon_handakuten = True  # 半浊音拗音
+chouon = True            # 长音
+
+[游戏设置]
+target_score = 2         # 达标分数（连续答对几次后移除）
+option_count = 4         # 选择题选项数量

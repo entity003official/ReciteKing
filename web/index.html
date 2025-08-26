@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="日语假名背诵练习应用">
+    <title>假名背诵王</title>
+    
+    <!-- PWA配置 -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="假名背诵王">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .kana-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .question {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .option-btn {
+            padding: 15px 20px;
+            font-size: 1.1em;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .option-btn.correct {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .option-btn.incorrect {
+            background: #f44336;
+            color: white;
+            border-color: #f44336;
+        }
+
+        .score-display {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.5s ease;
+        }
+
+        .result-message {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .result-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .result-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .settings {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .settings h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .kana-display {
+                font-size: 3em;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 设置面板 -->
+        <div class="card settings" id="settingsPanel">
+            <h3>选择练习类型</h3>
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="hiragana" checked>
+                    <label for="hiragana">平假名</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="katakana" checked>
+                    <label for="katakana">片假名</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="dakuten" checked>
+                    <label for="dakuten">浊音</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="handakuten" checked>
+                    <label for="handakuten">半浊音</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="youon" checked>
+                    <label for="youon">拗音</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="youon_dakuten" checked>
+                    <label for="youon_dakuten">浊音拗音</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="youon_handakuten" checked>
+                    <label for="youon_handakuten">半浊音拗音</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="chouon" checked>
+                    <label for="chouon">长音</label>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="btn btn-primary" onclick="startGame()">开始练习</button>
+            </div>
+        </div>
+
+        <!-- 游戏面板 -->
+        <div class="card hidden" id="gamePanel">
+            <div class="score-display">
+                <div>进度: <span id="completedCount">0</span> / <span id="totalCount">0</span></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <div class="kana-display" id="kanaDisplay">あ</div>
+            <div class="question">请选择正确的罗马音：</div>
+            
+            <div class="options" id="optionsContainer"></div>
+            
+            <div class="result-message hidden" id="resultMessage"></div>
+            
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="showSettings()">设置</button>
+                <button class="btn btn-primary hidden" onclick="nextQuestion()" id="nextBtn">下一题</button>
+            </div>
+        </div>
+
+        <!-- 完成面板 -->
+        <div class="card hidden" id="completePanel">
+            <div class="result-message success">
+                🎊 恭喜你，全部假名都达标了！
+            </div>
+            <div class="controls">
+                <button class="btn btn-primary" onclick="showSettings()">重新开始</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="kana-data.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // 注册Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('SW注册成功: ', registration.scope);
+                    }, function(err) {
+                        console.log('SW注册失败: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

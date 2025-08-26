@@ -1,0 +1,24 @@
+{
+  "name": "假名背诵王",
+  "short_name": "假名背诵王",
+  "description": "日语假名背诵练习应用",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["education", "utilities"],
+  "lang": "zh-CN"
+}
