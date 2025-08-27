@@ -1,4 +1,5 @@
-@echo off
+﻿@echo off
+chcp 65001 >nul
 echo 正在启动假名背诵王Web应用...
 echo.
 echo 请在浏览器中访问: http://localhost:8000
