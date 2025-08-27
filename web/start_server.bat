@@ -1,9 +1,9 @@
-ï»¿@echo off
-chcp 65001 >nul
-echo æ­£åœ¨å¯åŠ¨å‡åèƒŒè¯µçŽ‹Webåº”ç”¨...
+@echo off
+chcp 65001 >nul 2>&1
+echo ÕýÔÚÆô¶¯¼ÙÃû±³ËÐÍõWebÓ¦ÓÃ...
 echo.
-echo è¯·åœ¨æµè§ˆå™¨ä¸­è®¿é—®: http://localhost:8000
-echo æŒ‰ Ctrl+C å¯ä»¥åœæ­¢æœåŠ¡å™¨
+echo ÇëÔÚä¯ÀÀÆ÷ÖÐ·ÃÎÊ: http://localhost:8000
+echo °´ Ctrl+C ¿ÉÒÔÍ£Ö¹·þÎñÆ÷
 echo.
 python -m http.server 8000
 pause
