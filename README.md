@@ -1,29 +1,76 @@
 # 假名背诵王 (ReciteKing)
 
-🎌 一个优雅的日语假名背诵练习应用，支持Python桌面版和Web移动版本。
+🎌 一个优雅的日语假名背诵练习应用，支持Python桌面版、Web桌面版和Android移动版本。
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Python%20%7C%20Web%20%7C%20Android-lightgrey.svg)
 ![Language](https://img.shields.io/badge/language-Python%20%7C%20JavaScript-green.svg)
 
+## 🎯 多版本说明
+
+### 📱 Android移动版 v1.0 (新增)
+- **目录**: `mobile-app/`
+- **特性**: 原生Android体验，触摸优化，离线可用
+- **适合**: Android手机用户，随时随地学习
+
+### 🌐 Web桌面版 v1.0  
+- **目录**: `web/`
+- **特性**: 浏览器访问，响应式设计，PWA支持
+- **适合**: 桌面用户，大屏幕学习
+
+### 🖥️ Python桌面版 v1.0
+- **文件**: `demo.py`
+- **特性**: 命令行界面，轻量级，跨平台
+- **适合**: 开发者，终端用户
+
 ## ✨ 功能特点
 
-- 🎯 **全面覆盖**：支持平假名、片假名、浊音、半浊音、拗音、长音等
-- 🎮 **智能练习**：4选1选择题，随机出题，智能干扰项
-- 📊 **进度追踪**：实时显示学习进度，达标自动移除
-- ⚙️ **灵活配置**：可选择不同类型的假名进行练习
-- 📱 **多平台**：支持Python桌面版和Web移动版
+- 🎯 **全面覆盖**：支持275个假名字符（平假名、片假名、浊音、半浊音、拗音、长音等）
+- 🎮 **智能练习**：随机出题，4选1选择题（Python版），触摸学习（移动版）
+- 📊 **进度追踪**：实时显示学习进度，完成度统计
+- ⚙️ **个性化设置**：
+  - 自定义重复次数（1-10次）
+  - 精确选择学习内容（Web和移动版）
+  - 折叠式界面，清晰分类
+- 📱 **移动优化**：触摸友好，竖屏优化，启动画面
 - 🔄 **数据分离**：CSV数据文件，易于修改和扩展
+- 🌐 **离线支持**：所有版本均支持离线使用
 
-### 🚀 快速开始
+## 🚀 快速开始
 
-### 🌐 在线体验
+### 🌐 在线体验 (Web版)
 
 直接访问：**[https://entity003official.github.io/ReciteKing/](https://entity003official.github.io/ReciteKing/)**
 
 支持PWA，可添加到手机桌面！
 
-### Python桌面版
+### 📱 Android移动版 (推荐手机用户)
+
+1. **下载APK** (需要自己打包)
+   ```bash
+   cd mobile-app
+   # 按照 mobile-app/README.md 中的步骤打包
+   ```
+
+2. **或在线使用移动版界面**
+   - 访问上述在线地址
+   - 在手机浏览器中添加到桌面
+
+### 🌐 Web桌面版 (推荐桌面用户)
+
+```bash
+# 方法1: 使用批处理文件
+cd web
+start_server.bat
+
+# 方法2: 使用Python
+cd web  
+python -m http.server 8000
+```
+
+然后在浏览器访问 `http://localhost:8000`
+
+### �️ Python桌面版 (命令行用户)
 
 ```bash
 # 运行程序
@@ -33,21 +80,6 @@ python demo.py
 # 编辑 config.txt 选择练习类型
 python demo.py
 ```
-
-### Web移动版
-
-```bash
-# 启动本地服务器
-cd web
-python -m http.server 8000
-
-# 或直接运行批处理文件
-web/start_server.bat
-```
-
-然后在浏览器访问 `http://localhost:8000`
-
-## 📱 移动端使用
 
 ### PWA方式（推荐）
 1. 用手机浏览器访问应用

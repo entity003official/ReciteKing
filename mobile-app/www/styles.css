@@ -1,0 +1,539 @@
+/* 移动端假名背诵王样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+    overflow-x: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 标题栏 */
+.app-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.app-header h1 {
+    font-size: 1.8rem;
+    color: #2196F3;
+    margin-bottom: 5px;
+}
+
+.version-tag {
+    font-size: 0.9rem;
+    color: #666;
+    background: #e3f2fd;
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: inline-block;
+}
+
+/* 主内容区域 */
+.main-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.welcome-card {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-card h2 {
+    color: #2196F3;
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+}
+
+.welcome-card p {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* 设置区域 */
+.settings-section {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.settings-section h3 {
+    color: #2196F3;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+.setting-group {
+    margin-bottom: 20px;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.mobile-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: white;
+    color: #333;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.mobile-select:focus {
+    border-color: #2196F3;
+}
+
+/* 假名类别选择 */
+.setting-group h4 {
+    margin-bottom: 16px;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.kana-categories {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e1e5e9;
+    border-radius: 12px;
+}
+
+.category-section {
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.category-section:last-child {
+    border-bottom: none;
+}
+
+.category-header {
+    padding: 16px;
+    background: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.3s ease;
+    user-select: none;
+}
+
+.category-header:hover {
+    background: #e9ecef;
+}
+
+.toggle-icon {
+    font-size: 0.9rem;
+    transition: transform 0.3s ease;
+    width: 20px;
+}
+
+.category-name {
+    flex: 1;
+    margin-left: 10px;
+    font-weight: 500;
+}
+
+.selected-count {
+    font-size: 0.9rem;
+    color: #2196F3;
+    font-weight: 600;
+}
+
+.kana-grid {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 8px;
+    background: white;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.kana-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    font-size: 0.8rem;
+    min-height: 60px;
+    justify-content: center;
+}
+
+.kana-item:hover {
+    border-color: #2196F3;
+    transform: translateY(-2px);
+}
+
+.kana-item.selected {
+    border-color: #2196F3;
+    background: #e3f2fd;
+    color: #2196F3;
+}
+
+.kana-item .kana {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.kana-item .romaji {
+    font-size: 0.7rem;
+    color: #666;
+}
+
+.kana-item.selected .romaji {
+    color: #2196F3;
+}
+
+.total-selected {
+    text-align: center;
+    font-weight: 600;
+    color: #2196F3;
+    margin-top: 16px;
+    padding: 12px;
+    background: #e3f2fd;
+    border-radius: 8px;
+}
+
+/* 开始按钮 */
+.start-section {
+    text-align: center;
+}
+
+.start-btn {
+    width: 100%;
+    padding: 16px 24px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #2196F3, #21CBF3);
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    text-transform: none;
+}
+
+.start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+.start-btn:active {
+    transform: translateY(0);
+}
+
+.start-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 游戏界面 */
+.game-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 16px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.back-btn {
+    padding: 10px 16px;
+    background: #f5f5f5;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #333;
+    transition: background-color 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #e0e0e0;
+}
+
+.game-info {
+    text-align: right;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.repeat-info {
+    display: block;
+    margin-top: 4px;
+}
+
+.game-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: white;
+    border-radius: 20px;
+    padding: 40px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.kana-display {
+    margin-bottom: 20px;
+}
+
+.kana-display span {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #2196F3;
+    display: block;
+    text-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.romaji-display {
+    margin-bottom: 40px;
+}
+
+.romaji-display span {
+    font-size: 1.5rem;
+    color: #666;
+    background: #f8f9fa;
+    padding: 8px 20px;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.next-btn {
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    min-width: 150px;
+}
+
+.next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.next-btn:active {
+    transform: translateY(0);
+}
+
+/* 进度条 */
+.progress-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+    width: 0%;
+}
+
+/* 完成界面 */
+.complete-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.complete-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+}
+
+.complete-card h2 {
+    color: #4CAF50;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+}
+
+.stats {
+    margin-bottom: 30px;
+}
+
+.stats p {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.stats span {
+    font-weight: bold;
+    color: #2196F3;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.restart-btn, .menu-btn {
+    flex: 1;
+    padding: 14px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.restart-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.menu-btn {
+    background: #f5f5f5;
+    color: #333;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.restart-btn:hover, .menu-btn:hover {
+    transform: translateY(-2px);
+}
+
+.restart-btn:active, .menu-btn:active {
+    transform: translateY(0);
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+    .app-header {
+        padding: 15px;
+    }
+    
+    .app-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .main-content {
+        padding: 15px;
+    }
+    
+    .welcome-card, .settings-section {
+        padding: 16px;
+    }
+    
+    .kana-display span {
+        font-size: 3rem;
+    }
+    
+    .complete-card {
+        padding: 30px 20px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* 动画效果 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.app-container > * {
+    animation: slideIn 0.5s ease-out;
+}

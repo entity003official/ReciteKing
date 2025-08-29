@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>假名背诵王 - 移动版</title>
+    <meta name="description" content="日语假名背诵练习应用 - Android移动版">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- 移动端优化 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2196F3">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 标题栏 -->
+        <header class="app-header">
+            <h1>📱 假名背诵王</h1>
+            <p class="version-tag">Android Mobile v1.0</p>
+        </header>
+
+        <!-- 主界面 -->
+        <main class="main-content" id="mainMenu">
+            <div class="welcome-card">
+                <h2>🎌 日语假名学习</h2>
+                <p>随时随地练习日语假名</p>
+            </div>
+
+            <!-- 设置区域 -->
+            <div class="settings-section">
+                <h3>📝 学习设置</h3>
+                
+                <!-- 重复次数设置 -->
+                <div class="setting-group">
+                    <label for="repeatCount">重复次数：</label>
+                    <select id="repeatCount" class="mobile-select">
+                        <option value="1">1次</option>
+                        <option value="2">2次</option>
+                        <option value="3" selected>3次</option>
+                        <option value="5">5次</option>
+                        <option value="10">10次</option>
+                    </select>
+                </div>
+
+                <!-- 假名类型选择 -->
+                <div class="setting-group">
+                    <h4>选择学习内容：</h4>
+                    <div class="kana-categories">
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('hiragana')">
+                                <span class="toggle-icon" id="hiragana-icon">▼</span>
+                                <span class="category-name">平假名 (46个)</span>
+                                <span class="selected-count" id="hiragana-count">46/46</span>
+                            </div>
+                            <div class="kana-grid" id="hiragana-grid" style="display: block;"></div>
+                        </div>
+
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('katakana')">
+                                <span class="toggle-icon" id="katakana-icon">▼</span>
+                                <span class="category-name">片假名 (46个)</span>
+                                <span class="selected-count" id="katakana-count">46/46</span>
+                            </div>
+                            <div class="kana-grid" id="katakana-grid" style="display: block;"></div>
+                        </div>
+
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('dakuten')">
+                                <span class="toggle-icon" id="dakuten-icon">▼</span>
+                                <span class="category-name">浊音 (20个)</span>
+                                <span class="selected-count" id="dakuten-count">20/20</span>
+                            </div>
+                            <div class="kana-grid" id="dakuten-grid" style="display: block;"></div>
+                        </div>
+
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('handakuten')">
+                                <span class="toggle-icon" id="handakuten-icon">▼</span>
+                                <span class="category-name">半浊音 (5个)</span>
+                                <span class="selected-count" id="handakuten-count">5/5</span>
+                            </div>
+                            <div class="kana-grid" id="handakuten-grid" style="display: block;"></div>
+                        </div>
+
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('youon')">
+                                <span class="toggle-icon" id="youon-icon">▼</span>
+                                <span class="category-name">拗音 (36个)</span>
+                                <span class="selected-count" id="youon-count">36/36</span>
+                            </div>
+                            <div class="kana-grid" id="youon-grid" style="display: block;"></div>
+                        </div>
+
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('youon_dakuten')">
+                                <span class="toggle-icon" id="youon_dakuten-icon">▼</span>
+                                <span class="category-name">拗音浊音 (24个)</span>
+                                <span class="selected-count" id="youon_dakuten-count">24/24</span>
+                            </div>
+                            <div class="kana-grid" id="youon_dakuten-grid" style="display: block;"></div>
+                        </div>
+
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('youon_handakuten')">
+                                <span class="toggle-icon" id="youon_handakuten-icon">▼</span>
+                                <span class="category-name">拗音半浊音 (12个)</span>
+                                <span class="selected-count" id="youon_handakuten-count">12/12</span>
+                            </div>
+                            <div class="kana-grid" id="youon_handakuten-grid" style="display: block;"></div>
+                        </div>
+
+                        <div class="category-section">
+                            <div class="category-header" onclick="toggleSection('chouon')">
+                                <span class="toggle-icon" id="chouon-icon">▼</span>
+                                <span class="category-name">长音 (86个)</span>
+                                <span class="selected-count" id="chouon-count">86/86</span>
+                            </div>
+                            <div class="kana-grid" id="chouon-grid" style="display: block;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="total-selected">
+                    已选择：<span id="totalSelected">275</span> / 275 个假名
+                </div>
+            </div>
+
+            <!-- 开始按钮 -->
+            <div class="start-section">
+                <button class="start-btn" onclick="startGame()" id="startBtn">
+                    🎯 开始背诵
+                </button>
+            </div>
+        </main>
+
+        <!-- 游戏界面 -->
+        <main class="game-content" id="gameScreen" style="display: none;">
+            <div class="game-header">
+                <button class="back-btn" onclick="backToMenu()">← 返回</button>
+                <div class="game-info">
+                    <span id="currentProgress">1 / 10</span>
+                    <span class="repeat-info">重复: <span id="currentRepeat">1</span>/<span id="maxRepeat">3</span></span>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <div class="kana-display">
+                    <span id="currentKana">あ</span>
+                </div>
+                <div class="romaji-display">
+                    <span id="currentRomaji">a</span>
+                </div>
+                <button class="next-btn" onclick="nextKana()" id="nextBtn">
+                    下一个 →
+                </button>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </main>
+
+        <!-- 完成界面 -->
+        <main class="complete-content" id="completeScreen" style="display: none;">
+            <div class="complete-card">
+                <h2>🎉 恭喜完成！</h2>
+                <div class="stats">
+                    <p>已背诵：<span id="completedCount">0</span> 个假名</p>
+                    <p>重复次数：<span id="completedRepeats">0</span> 次</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="restart-btn" onclick="startGame()">🔄 再来一遍</button>
+                    <button class="menu-btn" onclick="backToMenu()">📋 返回设置</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="kana-data.js"></script>
+    <script src="mobile-app.js"></script>
+</body>
+</html>
