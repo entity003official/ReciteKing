@@ -1,9 +1,20 @@
 @echo off
-chcp 65001 >nul 2>&1
-echo 正在启动假名背诵王Web应用...
+title Kana Recite King Web Server
+cls
+echo ================================
+echo    Kana Recite King Web Server
+echo ================================
 echo.
-echo 请在浏览器中访问: http://localhost:8000
-echo 按 Ctrl+C 可以停止服务器
+echo Starting server...
 echo.
-python -m http.server 8000
+echo Please visit in your browser:
+echo   http://localhost:8000
+echo   http://127.0.0.1:8000
+echo.
+echo Press Ctrl+C to stop server
+echo ================================
+echo.
+python -m http.server 8000 --bind 127.0.0.1
+echo.
+echo Server stopped.
 pause
