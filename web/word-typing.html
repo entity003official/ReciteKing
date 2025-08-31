@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>假名背诵王 - 单词输入练习</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="word-typing.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="nav-header">
+                <h1>🎌 假名背诵王 - 单词练习</h1>
+                <div class="nav-links">
+                    <a href="index.html">假名背诵</a>
+                    <a href="word-typing.html" class="active">单词输入</a>
+                </div>
+            </nav>
+        </header>
+
+        <!-- 主菜单 -->
+        <main id="mainMenu" class="main-content">
+            <div class="welcome-section">
+                <h2>📝 日语单词输入练习</h2>
+                <p>通过中文释义练习假名输入，提高日语输入技能</p>
+            </div>
+
+            <!-- 练习设置 -->
+            <section class="settings-panel">
+                <h3>⚙️ 练习设置</h3>
+                
+                <div class="setting-row">
+                    <label for="wordDifficulty">难度等级：</label>
+                    <select id="wordDifficulty" class="setting-select">
+                        <option value="1">初级 (基础单词)</option>
+                        <option value="2">中级 (常用单词)</option>
+                        <option value="3">高级 (复杂单词)</option>
+                        <option value="all" selected>全部难度</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <label for="wordCategory">单词类型：</label>
+                    <select id="wordCategory" class="setting-select">
+                        <option value="all" selected>全部类型</option>
+                        <option value="名词">名词</option>
+                        <option value="动词">动词</option>
+                        <option value="形容词">形容词</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <label for="practiceMode">练习模式：</label>
+                    <select id="practiceMode" class="setting-select">
+                        <option value="practice" selected>练习模式 (显示提示)</option>
+                        <option value="test">测试模式 (无提示)</option>
+                        <option value="review">复习模式 (错误重练)</option>
+                    </select>
+                </div>
+
+                <div class="setting-row">
+                    <label for="wordCount">练习数量：</label>
+                    <select id="wordCount" class="setting-select">
+                        <option value="10" selected>10个</option>
+                        <option value="20">20个</option>
+                        <option value="30">30个</option>
+                        <option value="50">50个</option>
+                        <option value="all">全部</option>
+                    </select>
+                </div>
+            </section>
+
+            <div class="start-section">
+                <button class="start-btn" onclick="startWordPractice()">
+                    🎯 开始单词练习
+                </button>
+            </div>
+        </main>
+
+        <!-- 练习界面 -->
+        <main id="practiceScreen" class="practice-content" style="display: none;">
+            <div class="practice-header">
+                <button class="back-btn" onclick="backToMenu()">← 返回</button>
+                <div class="progress-info">
+                    <span id="currentWordProgress">1 / 10</span>
+                    <span class="score-info">得分: <span id="currentScore">0</span></span>
+                </div>
+            </div>
+
+            <!-- 题目显示区 -->
+            <div class="question-area">
+                <div class="question-card">
+                    <div class="chinese-meaning">
+                        <span id="chineseMeaning">爱情</span>
+                    </div>
+                    <div class="word-info">
+                        <div class="kanji-word" id="kanjiWord" style="display: none;">愛</div>
+                        <div class="word-category">
+                            <span id="wordCategory">名词</span> | 
+                            <span id="wordDifficulty">难度: ★☆☆</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-section">
+                <div class="input-area">
+                    <div class="kana-display">
+                        <span id="kanaDisplay">あい</span>
+                    </div>
+                    <div class="romaji-input-container">
+                        <input type="text" 
+                               id="romajiInput" 
+                               placeholder="输入罗马音 (如: ai)"
+                               autocomplete="off"
+                               autocapitalize="off"
+                               spellcheck="false">
+                        <button class="clear-btn" onclick="clearInput()">清空</button>
+                    </div>
+                </div>
+
+                <!-- 假名选择器 -->
+                <div class="kana-selector" id="kanaSelector" style="display: none;">
+                    <div class="selector-header">
+                        <span class="selector-title">选择假名:</span>
+                        <div class="kana-type-switch">
+                            <button class="type-btn active" data-type="hiragana">平假名</button>
+                            <button class="type-btn" data-type="katakana">片假名</button>
+                        </div>
+                    </div>
+                    <div class="kana-options" id="kanaOptions"></div>
+                </div>
+
+                <!-- 提交按钮 -->
+                <div class="submit-section">
+                    <button class="submit-btn" onclick="submitAnswer()" id="submitBtn" disabled>
+                        ✓ 提交答案
+                    </button>
+                    <button class="hint-btn" onclick="showHint()" id="hintBtn">
+                        💡 显示提示
+                    </button>
+                </div>
+            </div>
+
+            <!-- 答案反馈 -->
+            <div class="feedback-area" id="feedbackArea" style="display: none;">
+                <div class="feedback-card">
+                    <div class="feedback-result" id="feedbackResult">
+                        <span class="result-icon">✓</span>
+                        <span class="result-text">正确！</span>
+                    </div>
+                    <div class="correct-answer">
+                        <div class="answer-display">
+                            <span class="kana-answer" id="correctKana">あい</span>
+                            <span class="kanji-answer" id="correctKanji">愛</span>
+                        </div>
+                        <div class="answer-romaji" id="correctRomaji">ai</div>
+                    </div>
+                    <button class="next-word-btn" onclick="nextWord()">
+                        下一个单词 →
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- 结果界面 -->
+        <main id="resultScreen" class="result-content" style="display: none;">
+            <div class="result-card">
+                <h2>🎉 练习完成！</h2>
+                <div class="final-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">总题数：</span>
+                        <span class="stat-value" id="totalQuestions">10</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">正确数：</span>
+                        <span class="stat-value" id="correctAnswers">8</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">正确率：</span>
+                        <span class="stat-value" id="accuracyRate">80%</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">总得分：</span>
+                        <span class="stat-value" id="finalScore">160</span>
+                    </div>
+                </div>
+
+                <!-- 错误回顾 -->
+                <div class="error-review" id="errorReview" style="display: none;">
+                    <h3>📋 错误回顾</h3>
+                    <div class="error-list" id="errorList"></div>
+                </div>
+
+                <div class="result-actions">
+                    <button class="restart-btn" onclick="startWordPractice()">🔄 重新练习</button>
+                    <button class="review-btn" onclick="startReviewMode()" id="reviewBtn" style="display: none;">
+                        📖 复习错题
+                    </button>
+                    <button class="menu-btn" onclick="backToMenu()">📋 返回设置</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 罗马音键盘 -->
+    <div class="romaji-keyboard" id="romajiKeyboard" style="display: none;">
+        <div class="keyboard-header">
+            <span>罗马音键盘</span>
+            <button class="close-keyboard" onclick="closeKeyboard()">×</button>
+        </div>
+        <div class="keyboard-rows">
+            <div class="keyboard-row">
+                <button class="key-btn" onclick="addRomaji('a')">a</button>
+                <button class="key-btn" onclick="addRomaji('i')">i</button>
+                <button class="key-btn" onclick="addRomaji('u')">u</button>
+                <button class="key-btn" onclick="addRomaji('e')">e</button>
+                <button class="key-btn" onclick="addRomaji('o')">o</button>
+                <button class="key-btn" onclick="addRomaji('n')">n</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key-btn" onclick="addRomaji('k')">k</button>
+                <button class="key-btn" onclick="addRomaji('s')">s</button>
+                <button class="key-btn" onclick="addRomaji('t')">t</button>
+                <button class="key-btn" onclick="addRomaji('h')">h</button>
+                <button class="key-btn" onclick="addRomaji('m')">m</button>
+                <button class="key-btn" onclick="addRomaji('r')">r</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key-btn" onclick="addRomaji('y')">y</button>
+                <button class="key-btn" onclick="addRomaji('w')">w</button>
+                <button class="key-btn" onclick="addRomaji('g')">g</button>
+                <button class="key-btn" onclick="addRomaji('z')">z</button>
+                <button class="key-btn" onclick="addRomaji('d')">d</button>
+                <button class="key-btn" onclick="addRomaji('b')">b</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key-btn" onclick="addRomaji('p')">p</button>
+                <button class="key-btn" onclick="addRomaji('j')">j</button>
+                <button class="key-btn" onclick="addRomaji('c')">c</button>
+                <button class="key-btn special" onclick="addRomaji('shi')">shi</button>
+                <button class="key-btn special" onclick="addRomaji('chi')">chi</button>
+                <button class="key-btn special" onclick="addRomaji('tsu')">tsu</button>
+            </div>
+            <div class="keyboard-row">
+                <button class="key-btn backspace" onclick="backspaceRomaji()">⌫</button>
+                <button class="key-btn space" onclick="addSpace()">Space</button>
+                <button class="key-btn enter" onclick="confirmInput()">Enter</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="kana-data.js"></script>
+    <script src="romaji-converter.js"></script>
+    <script src="word-typing.js"></script>
+</body>
+</html>

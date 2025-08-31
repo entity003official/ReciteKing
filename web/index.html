@@ -38,6 +38,43 @@
             justify-content: center;
         }
 
+        /* 导航样式 */
+        .nav-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
         .card {
             background: white;
             border-radius: 16px;
@@ -426,6 +463,17 @@
 </head>
 <body>
     <div class="container">
+        <!-- 导航头部 -->
+        <header>
+            <nav class="nav-header">
+                <h1>🎌 假名背诵王</h1>
+                <div class="nav-links">
+                    <a href="index.html" class="active">假名背诵</a>
+                    <a href="word-typing.html">单词输入</a>
+                </div>
+            </nav>
+        </header>
+
         <!-- 设置面板 -->
         <div class="card settings" id="settingsPanel">
             <h3>练习设置</h3>
