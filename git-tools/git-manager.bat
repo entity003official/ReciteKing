@@ -39,13 +39,13 @@ if "%commit_msg%"=="" (
     pause
     goto menu
 )
-call "%~dp0quick-commit.bat" "%commit_msg%"
+call "%~dp0scripts\quick-commit.bat" "%commit_msg%"
 pause
 goto menu
 
 :show_stats
 echo.
-call "%~dp0git-stats.bat"
+call "%~dp0scripts\git-stats.bat"
 goto menu
 
 :create_release
@@ -57,20 +57,20 @@ if "%version%"=="" (
     goto menu
 )
 set /p notes="📝 请输入发布说明 (可选): "
-call "%~dp0create-release.bat" "%version%" "%notes%"
+call "%~dp0scripts\create-release.bat" "%version%" "%notes%"
 pause
 goto menu
 
 :setup_git
 echo.
-call "%~dp0setup-git.bat"
+call "%~dp0scripts\setup-git.bat"
 goto menu
 
 :show_status
 echo.
 echo 🔍 Git状态信息:
 echo ================================
-cd /d "%~dp0..\.."
+cd /d "%~dp0.."
 echo.
 echo 📂 当前分支:
 git branch --show-current
@@ -85,7 +85,7 @@ goto menu
 echo.
 echo 📚 提交历史:
 echo ================================
-cd /d "%~dp0..\.."
+cd /d "%~dp0.."
 echo.
 echo 📊 最近20次提交:
 git log --oneline -20
@@ -97,7 +97,7 @@ goto menu
 echo.
 echo 🌿 分支管理:
 echo ================================
-cd /d "%~dp0..\.."
+cd /d "%~dp0.."
 echo.
 echo 📋 所有分支:
 git branch -a
