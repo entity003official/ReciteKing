@@ -1,0 +1,12 @@
+.git\
+node_modules\
+__pycache__\
+*.tmp
+*.log
+*.cache
+.DS_Store
+Thumbs.db
+.vscode\settings.json
+.env
+dist\
+build\
