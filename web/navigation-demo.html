@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导航栏展示 - 日语单词背诵王</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 100px;
+        }
+
+        /* 导航样式 */
+        .nav-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.3rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-links a {
+            padding: 0.6rem 1rem;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-links a.active {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-links a.active:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-section {
+            margin-bottom: 30px;
+        }
+
+        .demo-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .demo-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            font-size: 1.2em;
+            width: 30px;
+        }
+
+        .highlight {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .nav-header {
+                padding: 1rem;
+            }
+            
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .nav-links a {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航头部 -->
+    <nav class="nav-header">
+        <div class="nav-content">
+            <h1>🎌 日语单词背诵王</h1>
+            <div class="nav-links">
+                <a href="index.html">🏠 首页</a>
+                <a href="word-typing.html">✏️ 单词输入</a>
+                <a href="curriculum-selection.html">📚 课程练习</a>
+                <a href="curriculum-stats.html">📊 课程统计</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="demo-section">
+            <h2>🎉 导航栏优化完成！</h2>
+            <p>根据您的需求，我已经优化了网页上方的导航栏，现在导航栏具有以下特性：</p>
+        </div>
+
+        <div class="demo-section">
+            <h2>✨ 新特性</h2>
+            <ul class="feature-list">
+                <li>
+                    <span class="feature-icon">📌</span>
+                    <span><strong>置顶显示：</strong>导航栏现在会固定在页面顶部，滚动时始终可见</span>
+                </li>
+                <li>
+                    <span class="feature-icon">🌈</span>
+                    <span><strong>高亮显示：</strong>当前页面用 <span class="highlight">橙红渐变色</span> 突出显示，其他页面保持半透明白色</span>
+                </li>
+                <li>
+                    <span class="feature-icon">🏠</span>
+                    <span><strong>返回首页：</strong>保留了"🏠 首页"选项，方便快速返回主页</span>
+                </li>
+                <li>
+                    <span class="feature-icon">📱</span>
+                    <span><strong>响应式设计：</strong>移动设备上会自动调整为垂直布局</span>
+                </li>
+                <li>
+                    <span class="feature-icon">✨</span>
+                    <span><strong>视觉效果：</strong>添加了毛玻璃效果、阴影和动画过渡</span>
+                </li>
+                <li>
+                    <span class="feature-icon">🔗</span>
+                    <span><strong>统一样式：</strong>所有页面都使用相同的导航栏样式</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h2>🎯 使用方式</h2>
+            <p>
+                现在您可以在任意页面上方看到导航栏，包含4个主要功能区域：
+                <br><br>
+                • <strong>🏠 首页</strong> - 返回假名背诵练习<br>
+                • <strong>✏️ 单词输入</strong> - 中文到假名输入练习<br>
+                • <strong>📚 课程练习</strong> - 系统化课程学习<br>
+                • <strong>📊 课程统计</strong> - 学习数据分析<br>
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2>🚀 立即体验</h2>
+            <p>尝试点击上方导航栏的不同选项，感受新的导航体验！每个按钮都会高亮显示当前页面，让您随时了解自己所在的位置。</p>
+        </div>
+    </div>
+</body>
+</html>

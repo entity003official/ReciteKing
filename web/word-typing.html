@@ -4,17 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>假名背诵王 - 单词输入练习</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="word-typing.css">
+    <style>
+        /* 导航样式 */
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: -20px -20px 2rem -20px;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 0 0 16px 16px;
+        }
+
+        .nav-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.3rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-links a {
+            padding: 0.6rem 1rem;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-links a.active {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-links a.active:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .nav-header {
+                padding: 1rem;
+            }
+            
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .nav-links a {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <header>
             <nav class="nav-header">
-                <h1>🎌 假名背诵王 - 单词练习</h1>
-                <div class="nav-links">
-                    <a href="index.html">假名背诵</a>
-                    <a href="word-typing.html" class="active">单词输入</a>
+                <div class="nav-content">
+                    <h1>🎌 假名背诵王 - 单词练习</h1>
+                    <div class="nav-links">
+                        <a href="index.html">🏠 首页</a>
+                        <a href="word-typing.html" class="active">✏️ 单词输入</a>
+                        <a href="curriculum-selection.html">📚 课程练习</a>
+                        <a href="curriculum-stats.html">📊 课程统计</a>
+                    </div>
                 </div>
             </nav>
         </header>

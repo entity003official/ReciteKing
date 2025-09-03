@@ -31,6 +31,25 @@ class WordTypingApp {
 
     // 加载单词数据
     async loadWords() {
+        // 检查是否有来自课程选择的单词数据
+        const practiceWords = localStorage.getItem('practiceWords');
+        const practiceType = localStorage.getItem('practiceType');
+        
+        if (practiceWords && practiceType === 'curriculum') {
+            try {
+                const selectedWords = JSON.parse(practiceWords);
+                this.words = this.convertCurriculumWords(selectedWords);
+                console.log(`已加载课程选择的 ${this.words.length} 个单词`);
+                // 清除已使用的数据
+                localStorage.removeItem('practiceWords');
+                localStorage.removeItem('practiceType');
+                return;
+            } catch (error) {
+                console.error('解析课程单词数据失败:', error);
+            }
+        }
+        
+        // 默认加载 CSV 文件
         try {
             const response = await fetch('japanese_words.csv');
             const text = await response.text();
@@ -41,6 +60,32 @@ class WordTypingApp {
             // 使用默认单词数据
             this.words = this.getDefaultWords();
         }
+    }
+
+    // 转换课程单词格式
+    convertCurriculumWords(curriculumWords) {
+        return curriculumWords.map(word => ({
+            kana: word['假名'] || word.kana || '',
+            kanji: word['汉字'] || word.kanji || '',
+            meaning: word['释义'] || word.meaning || '',
+            category: `${word['课程']}-${word['课次']}` || word.category || '未分类',
+            difficulty: this.getDifficultyFromLesson(word['课次']) || word.difficulty || 1,
+            wordType: word['词性'] || word.wordType || '名词',
+            romaji: word['罗马字'] || word.romaji || '',
+            example: word['例句假名'] || word.example || '',
+            exampleKanji: word['例句汉字'] || word.exampleKanji || '',
+            exampleMeaning: word['例句释义'] || word.exampleMeaning || ''
+        }));
+    }
+
+    // 根据课次推断难度
+    getDifficultyFromLesson(lessonName) {
+        if (!lessonName) return 1;
+        const lessonNum = parseInt(lessonName.replace(/[^0-9]/g, ''));
+        if (lessonNum <= 5) return 1;
+        if (lessonNum <= 15) return 2;
+        if (lessonNum <= 25) return 3;
+        return 4;
     }
 
     parseCSV(text) {
