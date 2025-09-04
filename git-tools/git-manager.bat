@@ -16,10 +16,11 @@ echo   4. ⚙️ 配置Git环境
 echo   5. 🔍 查看Git状态
 echo   6. 📚 查看提交历史
 echo   7. 🌿 管理分支
+echo   8. 📊 数据管理工具
 echo   0. ❌ 退出
 echo.
 
-set /p choice="请输入选择 (0-7): "
+set /p choice="请输入选择 (0-8): "
 
 if "%choice%"=="1" goto quick_commit
 if "%choice%"=="2" goto show_stats  
@@ -28,6 +29,7 @@ if "%choice%"=="4" goto setup_git
 if "%choice%"=="5" goto show_status
 if "%choice%"=="6" goto show_history
 if "%choice%"=="7" goto manage_branches
+if "%choice%"=="8" goto data_manager
 if "%choice%"=="0" goto exit
 goto invalid
 
@@ -125,6 +127,40 @@ if "%branch_choice%"=="1" (
 
 pause
 goto manage_branches
+
+:data_manager
+echo.
+echo 📊 数据管理工具
+echo ================================
+echo.
+echo 请选择数据管理操作:
+echo   1. 🔧 Git分支操作
+echo   2. 📊 CSV数据管理
+echo   3. 🌐 打开Web数据管理界面
+echo   4. 📁 打开数据目录
+echo   0. ↩️ 返回主菜单
+echo.
+set /p data_choice="请选择 (0-4): "
+
+if "%data_choice%"=="1" (
+    call "%~dp0scripts\data-manager-git.bat"
+) else if "%data_choice%"=="2" (
+    call "%~dp0scripts\csv-data-manager.bat"
+) else if "%data_choice%"=="3" (
+    echo 🌐 正在打开Web数据管理界面...
+    start http://localhost:8080/data-manager.html
+    echo ✅ 如果页面未打开，请确保本地服务器正在运行
+    pause
+) else if "%data_choice%"=="4" (
+    echo 📁 正在打开数据目录...
+    start explorer "%~dp0..\web"
+) else if "%data_choice%"=="0" (
+    goto menu
+) else (
+    echo ❌ 无效选择
+    pause
+)
+goto data_manager
 
 :invalid
 echo.
