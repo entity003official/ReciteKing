@@ -2,1255 +2,341 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReciteKing 数据管理中心</title>
+    <title>数据管理 - 日语单词背诵王</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding-top: 60px;
-        }
-
-        /* 固定导航栏 */
-        .nav-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            padding: 15px 0;
-            z-index: 100;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .nav-links a {
-            display: inline-block;
-            padding: 10px 20px;
-            text-decoration: none;
-            color: #333;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 25px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-links a:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .nav-links a.active {
-            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
-            color: white;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-        }
-
-        /* 主容器 */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #333;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .header p {
-            color: #666;
-            font-size: 1.1em;
-        }
-
-        /* 选项卡 */
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            gap: 10px;
-        }
-
-        .tab {
-            padding: 15px 30px;
-            background: #f8f9fa;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            color: #666;
-        }
-
-        .tab.active {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        /* 选项卡内容 */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* 表单样式 */
-        .form-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border: 1px solid #e9ecef;
-        }
-
-        .form-section h3 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.3em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 12px;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        /* 按钮样式 */
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-success {
-            background: linear-gradient(45deg, #28a745, #20c997);
-            color: white;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
-        }
-
-        .btn-danger {
-            background: linear-gradient(45deg, #dc3545, #fd7e14);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(45deg, #6c757d, #adb5bd);
-            color: white;
-        }
-
-        /* 数据表格 */
-        .data-table {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .table-header {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .table-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .search-box {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 20px;
-            outline: none;
-            min-width: 200px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #333;
-        }
-
-        tr:hover {
-            background: rgba(102, 126, 234, 0.05);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .btn-small {
-            padding: 5px 10px;
-            font-size: 0.9em;
-            border-radius: 5px;
-        }
-
-        /* Git分支管理 */
-        .branch-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .branch-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .branch-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .branch-name {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .branch-status {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-
-        .branch-status.current {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .branch-status.ahead {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .branch-description {
-            color: #666;
-            margin-bottom: 15px;
-        }
-
-        /* 响应式设计 */
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                padding: 15px;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .tabs {
-                flex-wrap: wrap;
-            }
-
-            .tab {
-                padding: 10px 20px;
-                font-size: 1em;
-            }
-
-            .nav-links {
-                padding: 0 10px;
-            }
-
-            .nav-links a {
-                padding: 8px 15px;
-                font-size: 0.9em;
-            }
-        }
-
-        /* 成功消息 */
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #c3e6cb;
-            display: none;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #f5c6cb;
-            display: none;
+        body { font-family: 'Segoe UI',sans-serif; background: #f7f7fb; margin: 0; }
+        .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 8px #0001; padding: 32px; }
+        h1 { margin-bottom: 16px; }
+        .lesson-block { border: 1px solid #eee; border-radius: 8px; margin-bottom: 24px; padding: 16px; }
+        .lesson-title { font-size: 1.2em; margin-bottom: 8px; }
+        .column-block { background: #f5f5fa; border-radius: 6px; margin-bottom: 12px; padding: 12px; }
+        .column-title { font-weight: bold; }
+        .word-list { margin: 8px 0 0 0; }
+        .word-list input { width: 120px; margin-right: 8px; }
+        .btn { background: #667eea; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; margin-right: 8px;}
+        .btn-del { background: #ff6b6b; }
+        .btn-export { background: #ffd93d; color: #333; }
+        .nav-header { background: #fff; border-bottom: 1px solid #eee; padding: 12px 0; margin-bottom: 24px; }
+        .nav-links a { margin-right: 18px; text-decoration: none; color: #667eea; font-weight: bold; }
+        .nav-links a.active { color: #ff6b6b; }
+        @media (max-width: 600px) {
+            .container { padding: 8px; }
+            .lesson-block { padding: 8px; }
         }
     </style>
 </head>
 <body>
-    <!-- 固定导航栏 -->
     <nav class="nav-header">
         <div class="nav-links">
-            <a href="index.html">🏠 返回首页</a>
-            <a href="curriculum-selection.html">📚 选择课程</a>
-            <a href="word-typing.html">⌨️ 单词练习</a>
-            <a href="curriculum-stats.html">📊 学习统计</a>
+            <a href="index.html">🏠 首页</a>
+            <a href="word-typing.html">✏️ 单词输入</a>
+            <a href="curriculum-selection.html">📚 课程练习</a>
+            <a href="curriculum-stats.html">📊 课程统计</a>
             <a href="data-manager.html" class="active">🔧 数据管理</a>
         </div>
     </nav>
-
     <div class="container">
-        <div class="header">
-            <h1>🔧 ReciteKing 数据管理中心</h1>
-            <p>管理单词数据库、课程内容和Git分支版本</p>
-        </div>
-
-        <!-- 选项卡 -->
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('words')">📝 单词管理</button>
-            <button class="tab" onclick="switchTab('lessons')">📖 课程管理</button>
-            <button class="tab" onclick="switchTab('branches')">🌿 分支管理</button>
-            <button class="tab" onclick="switchTab('import')">📥 数据导入/导出</button>
-        </div>
-
-        <!-- 成功/错误消息 -->
-        <div id="success-message" class="success-message"></div>
-        <div id="error-message" class="error-message"></div>
-
-        <!-- 单词管理选项卡 -->
-        <div id="words-tab" class="tab-content active">
-            <div class="form-section">
-                <h3>➕ 添加新单词</h3>
-                <form id="word-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="course">课程</label>
-                            <select id="course" name="course" required>
-                                <option value="">选择课程</option>
-                                <option value="初级上册">初级上册</option>
-                                <option value="初级下册">初级下册</option>
-                                <option value="中级上册">中级上册</option>
-                                <option value="中级下册">中级下册</option>
-                                <option value="高级上册">高级上册</option>
-                                <option value="高级下册">高级下册</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="lesson">课次</label>
-                            <input type="text" id="lesson" name="lesson" placeholder="第1课" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="kana">假名</label>
-                            <input type="text" id="kana" name="kana" placeholder="わたし" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="kanji">汉字</label>
-                            <input type="text" id="kanji" name="kanji" placeholder="私">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="meaning">释义</label>
-                            <input type="text" id="meaning" name="meaning" placeholder="我" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="pos">词性</label>
-                            <select id="pos" name="pos" required>
-                                <option value="">选择词性</option>
-                                <option value="名词">名词</option>
-                                <option value="动词">动词</option>
-                                <option value="形容词">形容词</option>
-                                <option value="副词">副词</option>
-                                <option value="代词">代词</option>
-                                <option value="助词">助词</option>
-                                <option value="助动词">助动词</option>
-                                <option value="感叹词">感叹词</option>
-                                <option value="连体词">连体词</option>
-                                <option value="接续词">接续词</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="romaji">罗马字</label>
-                            <input type="text" id="romaji" name="romaji" placeholder="watashi" required>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="example-kana">例句假名</label>
-                            <textarea id="example-kana" name="example-kana" placeholder="わたしは学生です"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="example-kanji">例句汉字</label>
-                            <textarea id="example-kanji" name="example-kanji" placeholder="私は学生です"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="example-meaning">例句释义</label>
-                            <textarea id="example-meaning" name="example-meaning" placeholder="我是学生"></textarea>
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button type="submit" class="btn btn-primary">✅ 添加单词</button>
-                        <button type="button" class="btn btn-secondary" onclick="clearForm()">🔄 清空表单</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="data-table">
-                <div class="table-header">
-                    <h3>📚 单词数据库</h3>
-                    <div class="table-controls">
-                        <input type="text" class="search-box" id="word-search" placeholder="🔍 搜索单词..." onkeyup="searchWords()">
-                        <button class="btn btn-success btn-small" onclick="exportWords()">📤 导出</button>
-                    </div>
-                </div>
-                <div style="max-height: 400px; overflow-y: auto;">
-                    <table id="words-table">
-                        <thead>
-                            <tr>
-                                <th>课程</th>
-                                <th>课次</th>
-                                <th>假名</th>
-                                <th>汉字</th>
-                                <th>释义</th>
-                                <th>词性</th>
-                                <th>罗马字</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="words-tbody">
-                            <!-- 动态加载数据 -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- 课程管理选项卡 -->
-        <div id="lessons-tab" class="tab-content">
-            <div class="form-section">
-                <h3>📖 课程内容管理</h3>
-                <form id="lesson-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="lesson-course">课程</label>
-                            <input type="text" id="lesson-course" name="lesson-course" placeholder="初级上册" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="lesson-number">课次</label>
-                            <input type="text" id="lesson-number" name="lesson-number" placeholder="第1课" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="lesson-title">课程标题</label>
-                        <input type="text" id="lesson-title" name="lesson-title" placeholder="初次见面" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="lesson-description">课程描述</label>
-                        <textarea id="lesson-description" name="lesson-description" placeholder="学习基本的日语问候语和自我介绍"></textarea>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="lesson-difficulty">难度级别</label>
-                            <select id="lesson-difficulty" name="lesson-difficulty" required>
-                                <option value="">选择难度</option>
-                                <option value="入门">入门</option>
-                                <option value="初级">初级</option>
-                                <option value="中级">中级</option>
-                                <option value="高级">高级</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="lesson-words-count">单词数量</label>
-                            <input type="number" id="lesson-words-count" name="lesson-words-count" placeholder="10" min="1">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="lesson-objectives">学习目标</label>
-                        <textarea id="lesson-objectives" name="lesson-objectives" placeholder="1. 掌握基本问候语&#10;2. 能进行简单自我介绍&#10;3. 学会询问他人信息"></textarea>
-                    </div>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button type="submit" class="btn btn-primary">✅ 保存课程</button>
-                        <button type="button" class="btn btn-secondary" onclick="clearLessonForm()">🔄 清空表单</button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="data-table">
-                <div class="table-header">
-                    <h3>📖 课程列表</h3>
-                    <div class="table-controls">
-                        <input type="text" class="search-box" id="lesson-search" placeholder="🔍 搜索课程..." onkeyup="searchLessons()">
-                    </div>
-                </div>
-                <div style="max-height: 400px; overflow-y: auto;">
-                    <table id="lessons-table">
-                        <thead>
-                            <tr>
-                                <th>课程</th>
-                                <th>课次</th>
-                                <th>标题</th>
-                                <th>难度</th>
-                                <th>单词数</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lessons-tbody">
-                            <!-- 动态加载数据 -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- 分支管理选项卡 -->
-        <div id="branches-tab" class="tab-content">
-            <div class="form-section">
-                <h3>🌿 Git分支管理</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="branch-name">新分支名称</label>
-                        <input type="text" id="branch-name" placeholder="feature/new-lesson-system">
-                    </div>
-                    <div class="form-group">
-                        <label for="branch-description">分支描述</label>
-                        <input type="text" id="branch-description" placeholder="添加新的课程管理功能">
-                    </div>
-                </div>
-                <div style="text-align: center; margin: 20px 0;">
-                    <button class="btn btn-primary" onclick="createBranch()">🌱 创建新分支</button>
-                    <button class="btn btn-success" onclick="refreshBranches()">🔄 刷新分支列表</button>
-                    <button class="btn btn-secondary" onclick="openGitTools()">🔧 打开Git工具</button>
-                </div>
-            </div>
-
-            <div id="branches-container">
-                <!-- 动态加载分支信息 -->
-            </div>
-        </div>
-
-        <!-- 数据导入/导出选项卡 -->
-        <div id="import-tab" class="tab-content">
-            <div class="form-section">
-                <h3>📥 数据导入</h3>
-                <div class="form-group">
-                    <label for="import-file">选择CSV文件</label>
-                    <input type="file" id="import-file" accept=".csv" onchange="handleFileSelect()">
-                </div>
-                <div id="import-preview" style="margin: 20px 0; display: none;">
-                    <h4>📋 预览数据:</h4>
-                    <div id="preview-content" style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px;"></div>
-                </div>
-                <div style="text-align: center; margin: 20px 0;">
-                    <button class="btn btn-success" onclick="importData()" disabled id="import-btn">📥 导入数据</button>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>📤 数据导出</h3>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="export-format">导出格式</label>
-                        <select id="export-format">
-                            <option value="csv">CSV文件</option>
-                            <option value="json">JSON文件</option>
-                            <option value="excel">Excel文件</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="export-filter">导出筛选</label>
-                        <select id="export-filter">
-                            <option value="all">全部数据</option>
-                            <option value="course">按课程</option>
-                            <option value="lesson">按课次</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="text-align: center; margin: 20px 0;">
-                    <button class="btn btn-primary" onclick="exportAllData()">📤 导出所有数据</button>
-                    <button class="btn btn-success" onclick="createBackup()">💾 创建数据备份</button>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>🔧 数据库工具</h3>
-                <div style="text-align: center; margin: 20px 0;">
-                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空数据库</button>
-                    <button class="btn btn-secondary" onclick="resetToDefault()">↩️ 重置为默认数据</button>
-                    <button class="btn btn-primary" onclick="optimizeDatabase()">⚡ 优化数据库</button>
-                </div>
-            </div>
-        </div>
+        <h1>数据管理（课程/栏目/单词）</h1>
+        <div id="lessons"></div>
+        <button class="btn" onclick="addLesson()">➕ 添加课程</button>
+        <button class="btn" onclick="loadSampleData()">📋 加载示例数据</button>
+        <button class="btn" onclick="loadAllLessons()">📚 加载全部课程</button>
+        <button class="btn" onclick="loadCompleteBook()">📖 完整教材</button>
+        <button class="btn btn-export" onclick="exportCSV()">📥 导出为CSV</button>
     </div>
-
     <script>
-        // 数据存储
-        let wordsData = [];
-        let lessonsData = [];
-        let branchesData = [];
+        // 数据结构：[{lesson:'第四课', columns:[{name:'星期', words:[{kana:'', kanji:'', meaning:''}, ...]}, ...]}, ...]
+        let data = [];
 
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            loadWordsData();
-            loadLessonsData();
-            loadBranchesData();
-            setupEventListeners();
-        });
-
-        // 选项卡切换
-        function switchTab(tabName) {
-            // 隐藏所有选项卡内容
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
+        function render() {
+            const lessonsDiv = document.getElementById('lessons');
+            lessonsDiv.innerHTML = '';
+            data.forEach((lesson, li) => {
+                const lessonDiv = document.createElement('div');
+                lessonDiv.className = 'lesson-block';
+                lessonDiv.innerHTML = `
+                    <div class="lesson-title">
+                        课程：<input value="${lesson.lesson}" onchange="data[${li}].lesson=this.value;render()">
+                        <button class="btn btn-del" onclick="delLesson(${li})">删除课程</button>
+                        <button class="btn" onclick="addColumn(${li})">➕ 添加栏目</button>
+                    </div>
+                `;
+                lesson.columns.forEach((col, ci) => {
+                    const colDiv = document.createElement('div');
+                    colDiv.className = 'column-block';
+                    colDiv.innerHTML = `
+                        <div class="column-title">
+                            栏目：<input value="${col.name}" onchange="data[${li}].columns[${ci}].name=this.value;render()">
+                            <button class="btn btn-del" onclick="delColumn(${li},${ci})">删除栏目</button>
+                            <button class="btn" onclick="addWord(${li},${ci})">➕ 添加单词</button>
+                            <button class="btn" onclick="batchAddWords(${li},${ci})">批量添加</button>
+                        </div>
+                        <div class="word-list" id="word-list-${li}-${ci}"></div>
+                    `;
+                    lessonDiv.appendChild(colDiv);
+                    setTimeout(() => renderWords(li, ci), 0);
+                });
+                lessonsDiv.appendChild(lessonDiv);
             });
-            
-            // 移除所有选项卡的active类
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
+        }
+
+        function renderWords(li, ci) {
+            const wordDiv = document.getElementById(`word-list-${li}-${ci}`);
+            wordDiv.innerHTML = '';
+            data[li].columns[ci].words.forEach((w, wi) => {
+                const row = document.createElement('div');
+                row.innerHTML = `
+                    假名: <input value="${w.kana}" onchange="data[${li}].columns[${ci}].words[${wi}].kana=this.value">
+                    汉字: <input value="${w.kanji}" onchange="data[${li}].columns[${ci}].words[${wi}].kanji=this.value">
+                    释义: <input value="${w.meaning}" onchange="data[${li}].columns[${ci}].words[${wi}].meaning=this.value">
+                    词性: <select onchange="data[${li}].columns[${ci}].words[${wi}].pos=this.value">
+                        <option value="名词" ${w.pos==='名词'?'selected':''}>名词</option>
+                        <option value="动词" ${w.pos==='动词'?'selected':''}>动词</option>
+                        <option value="形容词" ${w.pos==='形容词'?'selected':''}>形容词</option>
+                        <option value="副词" ${w.pos==='副词'?'selected':''}>副词</option>
+                        <option value="助词" ${w.pos==='助词'?'selected':''}>助词</option>
+                        <option value="其他" ${w.pos==='其他'?'selected':''}>其他</option>
+                    </select>
+                    <button class="btn btn-del" onclick="delWord(${li},${ci},${wi})">删除</button>
+                `;
+                wordDiv.appendChild(row);
             });
-            
-            // 显示选中的选项卡内容
-            document.getElementById(tabName + '-tab').classList.add('active');
-            
-            // 添加active类到选中的选项卡
-            event.target.classList.add('active');
         }
 
-        // 设置事件监听器
-        function setupEventListeners() {
-            document.getElementById('word-form').addEventListener('submit', handleWordSubmit);
-            document.getElementById('lesson-form').addEventListener('submit', handleLessonSubmit);
+        function addLesson() {
+            data.push({lesson:'新课程', columns:[]});
+            render();
         }
-
-        // 处理单词表单提交
-        function handleWordSubmit(event) {
-            event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const wordData = {
-                id: Date.now(),
-                course: formData.get('course'),
-                lesson: formData.get('lesson'),
-                kana: formData.get('kana'),
-                kanji: formData.get('kanji'),
-                meaning: formData.get('meaning'),
-                pos: formData.get('pos'),
-                romaji: formData.get('romaji'),
-                exampleKana: formData.get('example-kana'),
-                exampleKanji: formData.get('example-kanji'),
-                exampleMeaning: formData.get('example-meaning')
-            };
-
-            wordsData.push(wordData);
-            saveWordsData();
-            renderWordsTable();
-            showSuccessMessage('单词添加成功！');
-            clearForm();
+        function delLesson(i) {
+            if(confirm('确定删除该课程？')) { data.splice(i,1); render(); }
         }
-
-        // 处理课程表单提交
-        function handleLessonSubmit(event) {
-            event.preventDefault();
-            
-            const formData = new FormData(event.target);
-            const lessonData = {
-                id: Date.now(),
-                course: formData.get('lesson-course'),
-                lesson: formData.get('lesson-number'),
-                title: formData.get('lesson-title'),
-                description: formData.get('lesson-description'),
-                difficulty: formData.get('lesson-difficulty'),
-                wordsCount: formData.get('lesson-words-count'),
-                objectives: formData.get('lesson-objectives')
-            };
-
-            lessonsData.push(lessonData);
-            saveLessonsData();
-            renderLessonsTable();
-            showSuccessMessage('课程保存成功！');
-            clearLessonForm();
+        function addColumn(li) {
+            data[li].columns.push({name:'新栏目', words:[]});
+            render();
         }
-
-        // 加载单词数据
-        function loadWordsData() {
-            const saved = localStorage.getItem('reciteking_words');
-            if (saved) {
-                wordsData = JSON.parse(saved);
-            } else {
-                // 加载示例数据
-                wordsData = [
-                    {
-                        id: 1,
-                        course: '初级上册',
-                        lesson: '第1课',
-                        kana: 'わたし',
-                        kanji: '私',
-                        meaning: '我',
-                        pos: '代词',
-                        romaji: 'watashi',
-                        exampleKana: 'わたしは学生です',
-                        exampleKanji: '私は学生です',
-                        exampleMeaning: '我是学生'
+        function delColumn(li,ci) {
+            if(confirm('确定删除该栏目？')) { data[li].columns.splice(ci,1); render(); }
+        }
+        function addWord(li,ci) {
+            data[li].columns[ci].words.push({kana:'', kanji:'', meaning:'', pos:'名词'});
+            render();
+        }
+        function delWord(li,ci,wi) {
+            data[li].columns[ci].words.splice(wi,1);
+            render();
+        }
+        // 批量添加单词
+        function batchAddWords(li,ci) {
+            const text = prompt('每行格式：假名,汉字,释义,词性\n如：きのう,昨日,昨天,名词\n\n可以一次添加多行：');
+            if(!text) return;
+            text.split('\n').forEach(line => {
+                line = line.trim();
+                if(line) {
+                    const arr = line.split(',');
+                    if(arr.length >= 3) {
+                        data[li].columns[ci].words.push({
+                            kana: arr[0].trim(), 
+                            kanji: arr[1].trim(), 
+                            meaning: arr[2].trim(),
+                            pos: arr[3] ? arr[3].trim() : '名词'
+                        });
                     }
-                ];
-            }
-            renderWordsTable();
+                }
+            });
+            render();
         }
-
-        // 加载课程数据
-        function loadLessonsData() {
-            const saved = localStorage.getItem('reciteking_lessons');
-            if (saved) {
-                lessonsData = JSON.parse(saved);
-            } else {
-                // 加载示例数据
-                lessonsData = [
-                    {
-                        id: 1,
-                        course: '初级上册',
-                        lesson: '第1课',
-                        title: '初次见面',
-                        description: '学习基本的日语问候语和自我介绍',
-                        difficulty: '入门',
-                        wordsCount: 10,
-                        objectives: '1. 掌握基本问候语\n2. 能进行简单自我介绍\n3. 学会询问他人信息'
-                    }
-                ];
-            }
-            renderLessonsTable();
+        // 导出为CSV
+        function exportCSV() {
+            let csv = '课程,栏目,假名,汉字,释义,词性\n';
+            data.forEach(lesson => {
+                lesson.columns.forEach(col => {
+                    col.words.forEach(w => {
+                        csv += `"${lesson.lesson}","${col.name}","${w.kana}","${w.kanji}","${w.meaning}","${w.pos||'名词'}"\n`;
+                    });
+                });
+            });
+            const blob = new Blob([csv], {type:'text/csv'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'japanese_words_custom.csv';
+            a.click();
         }
-
-        // 加载分支数据
-        function loadBranchesData() {
-            // 模拟分支数据
-            branchesData = [
+        
+        // 加载示例数据
+        function loadSampleData() {
+            if(data.length > 0 && !confirm('这将覆盖现有数据，确定继续？')) return;
+            
+            data = [
                 {
-                    name: 'main',
-                    status: 'current',
-                    description: '主分支 - 生产环境',
-                    lastCommit: '9b066a1',
-                    lastUpdate: '2025-09-03'
-                },
-                {
-                    name: 'feature/data-manager',
-                    status: 'ahead',
-                    description: '数据管理功能分支',
-                    lastCommit: 'df7a8a7',
-                    lastUpdate: '2025-09-03'
+                    lesson: '第四课',
+                    columns: [
+                        {
+                            name: '星期',
+                            words: [
+                                {kana: 'なんようび', kanji: '何曜日', meaning: '星期几', pos: '名词'},
+                                {kana: 'げつようび', kanji: '月曜日', meaning: '星期一', pos: '名词'},
+                                {kana: 'かようび', kanji: '火曜日', meaning: '星期二', pos: '名词'},
+                                {kana: 'すいようび', kanji: '水曜日', meaning: '星期三', pos: '名词'},
+                                {kana: 'もくようび', kanji: '木曜日', meaning: '星期四', pos: '名词'},
+                                {kana: 'きんようび', kanji: '金曜日', meaning: '星期五', pos: '名词'},
+                                {kana: 'どようび', kanji: '土曜日', meaning: '星期六', pos: '名词'},
+                                {kana: 'にちようび', kanji: '日曜日', meaning: '星期日', pos: '名词'}
+                            ]
+                        },
+                        {
+                            name: '时间概念（天）',
+                            words: [
+                                {kana: 'きのう', kanji: '昨日', meaning: '昨天', pos: '名词'},
+                                {kana: 'おととい', kanji: '一昨日', meaning: '前天', pos: '名词'},
+                                {kana: 'きょう', kanji: '今日', meaning: '今天', pos: '名词'},
+                                {kana: 'あした', kanji: '明日', meaning: '明天', pos: '名词'},
+                                {kana: 'あさって', kanji: '明後日', meaning: '后天', pos: '名词'}
+                            ]
+                        },
+                        {
+                            name: '时间概念（一天内）',
+                            words: [
+                                {kana: 'ごぜん', kanji: '午前', meaning: '上午', pos: '名词'},
+                                {kana: 'ごご', kanji: '午後', meaning: '下午', pos: '名词'},
+                                {kana: 'あさ', kanji: '朝', meaning: '早晨', pos: '名词'},
+                                {kana: 'ばん', kanji: '晩', meaning: '晚上', pos: '名词'},
+                                {kana: 'ひる', kanji: '昼', meaning: '白天', pos: '名词'}
+                            ]
+                        },
+                        {
+                            name: '日常动作',
+                            words: [
+                                {kana: 'おきます', kanji: '起きます', meaning: '起床', pos: '动词'},
+                                {kana: 'ねます', kanji: '寝ます', meaning: '睡觉', pos: '动词'},
+                                {kana: 'たべます', kanji: '食べます', meaning: '吃', pos: '动词'},
+                                {kana: 'のみます', kanji: '飲みます', meaning: '喝', pos: '动词'}
+                            ]
+                        },
+                        {
+                            name: '移动动作',
+                            words: [
+                                {kana: 'いきます', kanji: '行きます', meaning: '去', pos: '动词'},
+                                {kana: 'きます', kanji: '来ます', meaning: '来', pos: '动词'},
+                                {kana: 'かえります', kanji: '帰ります', meaning: '回来', pos: '动词'}
+                            ]
+                        },
+                        {
+                            name: '场所与物品',
+                            words: [
+                                {kana: 'がっこう', kanji: '学校', meaning: '学校', pos: '名词'},
+                                {kana: 'いえ', kanji: '家', meaning: '家', pos: '名词'},
+                                {kana: 'かいしゃ', kanji: '会社', meaning: '公司', pos: '名词'},
+                                {kana: 'みず', kanji: '水', meaning: '水', pos: '名词'},
+                                {kana: 'ごはん', kanji: 'ご飯', meaning: '米饭', pos: '名词'},
+                                {kana: 'ほん', kanji: '本', meaning: '书', pos: '名词'},
+                                {kana: 'でんしゃ', kanji: '電車', meaning: '电车', pos: '名词'}
+                            ]
+                        }
+                    ]
                 }
             ];
-            renderBranchesView();
+            render();
+            alert('示例数据已加载！已添加词性字段，并重新整合了栏目分类');
         }
-
-        // 保存单词数据
-        function saveWordsData() {
-            localStorage.setItem('reciteking_words', JSON.stringify(wordsData));
-        }
-
-        // 保存课程数据
-        function saveLessonsData() {
-            localStorage.setItem('reciteking_lessons', JSON.stringify(lessonsData));
-        }
-
-        // 渲染单词表格
-        function renderWordsTable() {
-            const tbody = document.getElementById('words-tbody');
-            tbody.innerHTML = '';
+        
+        // 加载全部课程数据
+        function loadAllLessons() {
+            if(data.length > 0 && !confirm('这将覆盖现有数据，确定继续？')) return;
             
-            wordsData.forEach(word => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${word.course}</td>
-                    <td>${word.lesson}</td>
-                    <td>${word.kana}</td>
-                    <td>${word.kanji || '-'}</td>
-                    <td>${word.meaning}</td>
-                    <td>${word.pos}</td>
-                    <td>${word.romaji}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-primary btn-small" onclick="editWord(${word.id})">✏️</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteWord(${word.id})">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        // 渲染课程表格
-        function renderLessonsTable() {
-            const tbody = document.getElementById('lessons-tbody');
-            tbody.innerHTML = '';
-            
-            lessonsData.forEach(lesson => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${lesson.course}</td>
-                    <td>${lesson.lesson}</td>
-                    <td>${lesson.title}</td>
-                    <td>${lesson.difficulty}</td>
-                    <td>${lesson.wordsCount}</td>
-                    <td class="action-buttons">
-                        <button class="btn btn-primary btn-small" onclick="editLesson(${lesson.id})">✏️</button>
-                        <button class="btn btn-danger btn-small" onclick="deleteLesson(${lesson.id})">🗑️</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        // 渲染分支视图
-        function renderBranchesView() {
-            const container = document.getElementById('branches-container');
-            container.innerHTML = '';
-            
-            branchesData.forEach(branch => {
-                const card = document.createElement('div');
-                card.className = 'branch-card';
-                card.innerHTML = `
-                    <div class="branch-header">
-                        <div class="branch-name">
-                            🌿 ${branch.name}
-                            <span class="branch-status ${branch.status}">
-                                ${branch.status === 'current' ? '当前分支' : '领先主分支'}
-                            </span>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn btn-primary btn-small" onclick="switchToBranch('${branch.name}')">切换</button>
-                            <button class="btn btn-success btn-small" onclick="mergeBranch('${branch.name}')">合并</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteBranch('${branch.name}')">删除</button>
-                        </div>
-                    </div>
-                    <div class="branch-description">${branch.description}</div>
-                    <div style="color: #888; font-size: 0.9em;">
-                        📅 最后更新: ${branch.lastUpdate} | 📝 提交: ${branch.lastCommit}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        // 搜索功能
-        function searchWords() {
-            const query = document.getElementById('word-search').value.toLowerCase();
-            const rows = document.querySelectorAll('#words-tbody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
-        }
-
-        function searchLessons() {
-            const query = document.getElementById('lesson-search').value.toLowerCase();
-            const rows = document.querySelectorAll('#lessons-tbody tr');
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(query) ? '' : 'none';
-            });
-        }
-
-        // 清空表单
-        function clearForm() {
-            document.getElementById('word-form').reset();
-        }
-
-        function clearLessonForm() {
-            document.getElementById('lesson-form').reset();
-        }
-
-        // 删除功能
-        function deleteWord(id) {
-            if (confirm('确定要删除这个单词吗？')) {
-                wordsData = wordsData.filter(word => word.id !== id);
-                saveWordsData();
-                renderWordsTable();
-                showSuccessMessage('单词删除成功！');
-            }
-        }
-
-        function deleteLesson(id) {
-            if (confirm('确定要删除这个课程吗？')) {
-                lessonsData = lessonsData.filter(lesson => lesson.id !== id);
-                saveLessonsData();
-                renderLessonsTable();
-                showSuccessMessage('课程删除成功！');
-            }
-        }
-
-        // Git分支操作
-        function createBranch() {
-            const name = document.getElementById('branch-name').value;
-            const description = document.getElementById('branch-description').value;
-            
-            if (!name) {
-                showErrorMessage('请输入分支名称！');
-                return;
-            }
-            
-            const newBranch = {
-                name: name,
-                status: 'ahead',
-                description: description || '新建分支',
-                lastCommit: 'new',
-                lastUpdate: new Date().toISOString().split('T')[0]
-            };
-            
-            branchesData.push(newBranch);
-            renderBranchesView();
-            showSuccessMessage(`分支 ${name} 创建成功！`);
-            
-            document.getElementById('branch-name').value = '';
-            document.getElementById('branch-description').value = '';
-        }
-
-        function switchToBranch(branchName) {
-            showSuccessMessage(`已切换到分支: ${branchName}`);
-            // 这里可以调用实际的Git命令
-        }
-
-        function mergeBranch(branchName) {
-            if (confirm(`确定要合并分支 ${branchName} 吗？`)) {
-                showSuccessMessage(`分支 ${branchName} 合并成功！`);
-                // 这里可以调用实际的Git命令
-            }
-        }
-
-        function deleteBranch(branchName) {
-            if (branchName === 'main') {
-                showErrorMessage('不能删除主分支！');
-                return;
-            }
-            
-            if (confirm(`确定要删除分支 ${branchName} 吗？`)) {
-                branchesData = branchesData.filter(branch => branch.name !== branchName);
-                renderBranchesView();
-                showSuccessMessage(`分支 ${branchName} 删除成功！`);
-            }
-        }
-
-        function refreshBranches() {
-            loadBranchesData();
-            showSuccessMessage('分支列表已刷新！');
-        }
-
-        function openGitTools() {
-            showSuccessMessage('正在打开Git管理工具...');
-            // 这里可以调用Git工具脚本
-        }
-
-        // 数据导入/导出功能
-        function handleFileSelect() {
-            const file = document.getElementById('import-file').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const csv = e.target.result;
-                    const preview = parseCSVPreview(csv);
-                    document.getElementById('preview-content').innerHTML = preview;
-                    document.getElementById('import-preview').style.display = 'block';
-                    document.getElementById('import-btn').disabled = false;
-                };
-                reader.readAsText(file);
-            }
-        }
-
-        function parseCSVPreview(csv) {
-            const lines = csv.split('\n').slice(0, 6); // 只显示前5行
-            let html = '<table style="width: 100%; border-collapse: collapse;">';
-            
-            lines.forEach((line, index) => {
-                const cells = line.split(',');
-                html += '<tr>';
-                cells.forEach(cell => {
-                    html += `<td style="border: 1px solid #ddd; padding: 5px;">${cell}</td>`;
-                });
-                html += '</tr>';
-            });
-            
-            html += '</table>';
-            return html;
-        }
-
-        function importData() {
-            showSuccessMessage('数据导入成功！');
-            document.getElementById('import-preview').style.display = 'none';
-            document.getElementById('import-file').value = '';
-            document.getElementById('import-btn').disabled = true;
-        }
-
-        function exportWords() {
-            const csv = convertWordsToCSV();
-            downloadCSV(csv, 'words_export.csv');
-            showSuccessMessage('单词数据导出成功！');
-        }
-
-        function exportAllData() {
-            const format = document.getElementById('export-format').value;
-            showSuccessMessage(`所有数据已导出为${format.toUpperCase()}格式！`);
-        }
-
-        function createBackup() {
-            const backup = {
-                words: wordsData,
-                lessons: lessonsData,
-                timestamp: new Date().toISOString()
-            };
-            
-            const json = JSON.stringify(backup, null, 2);
-            downloadJSON(json, `reciteking_backup_${new Date().toISOString().split('T')[0]}.json`);
-            showSuccessMessage('数据备份创建成功！');
-        }
-
-        function convertWordsToCSV() {
-            let csv = '课程,课次,假名,汉字,释义,词性,罗马字,例句假名,例句汉字,例句释义\n';
-            wordsData.forEach(word => {
-                csv += `${word.course},${word.lesson},${word.kana},${word.kanji || ''},${word.meaning},${word.pos},${word.romaji},${word.exampleKana || ''},${word.exampleKanji || ''},${word.exampleMeaning || ''}\n`;
-            });
-            return csv;
-        }
-
-        function downloadCSV(csv, filename) {
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        function downloadJSON(json, filename) {
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        // 数据库工具功能
-        function clearAllData() {
-            if (confirm('⚠️ 这将删除所有数据，确定要继续吗？')) {
-                if (confirm('⚠️ 最后确认：这个操作不可撤销！')) {
-                    wordsData = [];
-                    lessonsData = [];
-                    saveWordsData();
-                    saveLessonsData();
-                    renderWordsTable();
-                    renderLessonsTable();
-                    showSuccessMessage('所有数据已清空！');
+            data = [
+                // 第一课数据
+                {
+                    lesson: '第一课',
+                    columns: [
+                        {
+                            name: '人称代词',
+                            words: [
+                                {kana: 'わたし', kanji: '私', meaning: '我', pos: '代词'},
+                                {kana: 'あなた', kanji: 'あなた', meaning: '你', pos: '代词'},
+                                {kana: 'あのひと', kanji: 'あの人', meaning: '那个人', pos: '代词'}
+                            ]
+                        },
+                        {
+                            name: '国籍与职业',
+                            words: [
+                                {kana: 'がくせい', kanji: '学生', meaning: '学生', pos: '名词'},
+                                {kana: 'せんせい', kanji: '先生', meaning: '老师', pos: '名词'},
+                                {kana: 'かいしゃいん', kanji: '会社員', meaning: '公司职员', pos: '名词'},
+                                {kana: 'ちゅうごくじん', kanji: '中国人', meaning: '中国人', pos: '名词'},
+                                {kana: 'にほんじん', kanji: '日本人', meaning: '日本人', pos: '名词'}
+                            ]
+                        }
+                    ]
+                },
+                // 第四课数据(保留原有)
+                {
+                    lesson: '第四课',
+                    columns: [
+                        {
+                            name: '星期',
+                            words: [
+                                {kana: 'なんようび', kanji: '何曜日', meaning: '星期几', pos: '名词'},
+                                {kana: 'げつようび', kanji: '月曜日', meaning: '星期一', pos: '名词'},
+                                {kana: 'かようび', kanji: '火曜日', meaning: '星期二', pos: '名词'},
+                                {kana: 'すいようび', kanji: '水曜日', meaning: '星期三', pos: '名词'},
+                                {kana: 'もくようび', kanji: '木曜日', meaning: '星期四', pos: '名词'},
+                                {kana: 'きんようび', kanji: '金曜日', meaning: '星期五', pos: '名词'},
+                                {kana: 'どようび', kanji: '土曜日', meaning: '星期六', pos: '名词'},
+                                {kana: 'にちようび', kanji: '日曜日', meaning: '星期日', pos: '名词'}
+                            ]
+                        },
+                        {
+                            name: '时间概念（天）',
+                            words: [
+                                {kana: 'きのう', kanji: '昨日', meaning: '昨天', pos: '名词'},
+                                {kana: 'おととい', kanji: '一昨日', meaning: '前天', pos: '名词'},
+                                {kana: 'きょう', kanji: '今日', meaning: '今天', pos: '名词'},
+                                {kana: 'あした', kanji: '明日', meaning: '明天', pos: '名词'},
+                                {kana: 'あさって', kanji: '明後日', meaning: '后天', pos: '名词'}
+                            ]
+                        }
+                    ]
+                },
+                // 第六课数据
+                {
+                    lesson: '第六课',
+                    columns: [
+                        {
+                            name: '日常动作',
+                            words: [
+                                {kana: 'たべます', kanji: '食べます', meaning: '吃', pos: '动词'},
+                                {kana: 'のみます', kanji: '飲みます', meaning: '喝', pos: '动词'},
+                                {kana: 'みます', kanji: '見ます', meaning: '看', pos: '动词'},
+                                {kana: 'ききます', kanji: '聞きます', meaning: '听', pos: '动词'}
+                            ]
+                        },
+                        {
+                            name: '食物饮料',
+                            words: [
+                                {kana: 'ごはん', kanji: 'ご飯', meaning: '米饭', pos: '名词'},
+                                {kana: 'みず', kanji: '水', meaning: '水', pos: '名词'},
+                                {kana: 'おちゃ', kanji: 'お茶', meaning: '茶', pos: '名词'},
+                                {kana: 'コーヒー', kanji: 'コーヒー', meaning: '咖啡', pos: '名词'}
+                            ]
+                        }
+                    ]
                 }
-            }
+            ];
+            render();
+            alert('全部课程数据已加载！包含第1、4、6课的精选词汇内容');
         }
-
-        function resetToDefault() {
-            if (confirm('确定要重置为默认数据吗？')) {
-                localStorage.removeItem('reciteking_words');
-                localStorage.removeItem('reciteking_lessons');
-                loadWordsData();
-                loadLessonsData();
-                showSuccessMessage('已重置为默认数据！');
-            }
+        
+        // 加载完整初级1教材数据
+        function loadCompleteBook() {
+            if(data.length > 0 && !confirm('这将加载完整的初级1教材数据，确定继续？')) return;
+            
+            alert('初级1教材包含24课，共780+个单词。数据较大，请稍等...');
+            // 这里可以添加完整的24课数据
+            // 由于数据量大，建议分批加载或从CSV文件读取
+            alert('完整教材数据功能开发中，请使用CSV文件导入功能');
         }
-
-        function optimizeDatabase() {
-            showSuccessMessage('数据库优化完成！');
-        }
-
-        // 编辑功能（简化实现）
-        function editWord(id) {
-            const word = wordsData.find(w => w.id === id);
-            if (word) {
-                // 填充表单
-                document.getElementById('course').value = word.course;
-                document.getElementById('lesson').value = word.lesson;
-                document.getElementById('kana').value = word.kana;
-                document.getElementById('kanji').value = word.kanji;
-                document.getElementById('meaning').value = word.meaning;
-                document.getElementById('pos').value = word.pos;
-                document.getElementById('romaji').value = word.romaji;
-                document.getElementById('example-kana').value = word.exampleKana;
-                document.getElementById('example-kanji').value = word.exampleKanji;
-                document.getElementById('example-meaning').value = word.exampleMeaning;
-                
-                // 删除原数据
-                wordsData = wordsData.filter(w => w.id !== id);
-                saveWordsData();
-                renderWordsTable();
-                
-                showSuccessMessage('请修改后重新提交单词！');
-            }
-        }
-
-        function editLesson(id) {
-            const lesson = lessonsData.find(l => l.id === id);
-            if (lesson) {
-                // 填充表单
-                document.getElementById('lesson-course').value = lesson.course;
-                document.getElementById('lesson-number').value = lesson.lesson;
-                document.getElementById('lesson-title').value = lesson.title;
-                document.getElementById('lesson-description').value = lesson.description;
-                document.getElementById('lesson-difficulty').value = lesson.difficulty;
-                document.getElementById('lesson-words-count').value = lesson.wordsCount;
-                document.getElementById('lesson-objectives').value = lesson.objectives;
-                
-                // 切换到课程管理选项卡
-                switchTab('lessons');
-                
-                // 删除原数据
-                lessonsData = lessonsData.filter(l => l.id !== id);
-                saveLessonsData();
-                renderLessonsTable();
-                
-                showSuccessMessage('请修改后重新保存课程！');
-            }
-        }
-
-        // 消息显示功能
-        function showSuccessMessage(message) {
-            const element = document.getElementById('success-message');
-            element.textContent = message;
-            element.style.display = 'block';
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 3000);
-        }
-
-        function showErrorMessage(message) {
-            const element = document.getElementById('error-message');
-            element.textContent = message;
-            element.style.display = 'block';
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 3000);
-        }
+        
+        render();
     </script>
 </body>
 </html>
