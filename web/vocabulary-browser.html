@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>假名背诵王 - 词汇浏览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* 导航栏样式 */
+        .nav-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem 2rem;
+            color: white;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-header h1 {
+            font-size: 1.8rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            padding: 0.6rem 1.2rem;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-links a.active {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            padding: 2rem;
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .control-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-row label {
+            min-width: 100px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .control-select {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 词汇展示区域 */
+        .vocabulary-display {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .lesson-section {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .lesson-section:last-child {
+            border-bottom: none;
+        }
+
+        .lesson-header {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border-left: 4px solid #2196f3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lesson-header:hover {
+            background: linear-gradient(135deg, #bbdefb 0%, #dcedc8 100%);
+        }
+
+        .lesson-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1976d2;
+        }
+
+        .lesson-stats {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .expand-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+            color: #1976d2;
+        }
+
+        .lesson-header.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+
+        .lesson-content {
+            display: none;
+            padding: 0;
+        }
+
+        .lesson-content.expanded {
+            display: block;
+        }
+
+        .category-section {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .category-section:last-child {
+            border-bottom: none;
+        }
+
+        .category-header {
+            background: #f8f9fa;
+            padding: 0.75rem 2rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            border-left: 3px solid #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .category-header:hover {
+            background: #e9ecef;
+        }
+
+        .category-title {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .category-count {
+            font-size: 0.9rem;
+            color: #6c757d;
+            background: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+        }
+
+        .category-content {
+            display: none;
+            background: white;
+        }
+
+        .category-content.expanded {
+            display: block;
+        }
+
+        .word-list {
+            padding: 1rem 2rem;
+        }
+
+        .word-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .word-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .word-checkbox {
+            margin-right: 1rem;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .word-display {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .word-japanese {
+            position: relative;
+            font-size: 1.2rem;
+            min-width: 120px;
+        }
+
+        .word-kanji {
+            font-family: 'MS Mincho', 'Yu Mincho', serif;
+            font-size: 1.3rem;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .word-kana {
+            font-family: 'MS Gothic', 'Yu Gothic', sans-serif;
+            font-size: 0.9rem;
+            color: #666;
+            position: absolute;
+            top: -0.8rem;
+            left: 0;
+            white-space: nowrap;
+        }
+
+        .word-kana-only {
+            font-family: 'MS Gothic', 'Yu Gothic', sans-serif;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .word-meaning {
+            flex: 1;
+            color: #495057;
+            font-size: 1rem;
+        }
+
+        .word-type {
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* 选择统计 */
+        .selection-summary {
+            background: linear-gradient(135deg, #fff3e0 0%, #f3e5f5 100%);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #ff9800;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: #e65100;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #795548;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .control-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-row label {
+                min-width: auto;
+            }
+
+            .action-buttons {
+                justify-content: center;
+            }
+
+            .word-display {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .summary-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .loading::after {
+            content: '⏳';
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 导航栏 -->
+        <header class="nav-header">
+            <div class="nav-content">
+                <h1>🎌 词汇浏览器</h1>
+                <div class="nav-links">
+                    <a href="index.html">🏠 首页</a>
+                    <a href="word-typing.html">✏️ 单词输入</a>
+                    <a href="curriculum-selection.html">📚 课程练习</a>
+                    <a href="vocabulary-browser.html" class="active">📖 词汇浏览</a>
+                    <a href="data-manager.html">🔧 数据管理</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主内容 -->
+        <main class="main-content">
+            <!-- 控制面板 -->
+            <div class="control-panel">
+                <div class="control-row">
+                    <label for="lessonFilter">📚 课程筛选:</label>
+                    <select id="lessonFilter" class="control-select" onchange="filterVocabulary()">
+                        <option value="all">显示全部课程</option>
+                        <option value="第一课">第一课 - 初次见面</option>
+                        <option value="第二课">第二课 - 这是什么</option>
+                        <option value="第三课">第三课 - 这里是什么地方</option>
+                        <option value="第四课">第四课 - 时间安排</option>
+                        <option value="第五课">第五课 - 交通出行</option>
+                        <option value="第六课">第六课 - 日常活动</option>
+                        <option value="第七课">第七课 - 授受表现</option>
+                        <option value="第八课">第八课 - 形容词练习</option>
+                        <option value="第九课">第九课 - 喜好表达</option>
+                        <option value="第十课">第十课 - 存在表现</option>
+                        <option value="第十一课">第十一课 - 数量表达</option>
+                        <option value="第十二课">第十二课 - 过去时态</option>
+                        <option value="第十三课">第十三课 - 愿望表达</option>
+                        <option value="第十四课">第十四课 - 进行时态</option>
+                        <option value="第十五课">第十五课 - 许可禁止</option>
+                        <option value="第十六课">第十六课 - 兴趣爱好</option>
+                        <option value="第十七课">第十七课 - 能力可能</option>
+                        <option value="第十八课">第十八课 - 动作顺序</option>
+                        <option value="第十九课">第十九课 - 经验表达</option>
+                        <option value="第二十课">第二十课 - 敬语表现</option>
+                        <option value="第二十一课">第二十一课 - 意见建议</option>
+                        <option value="第二十二课">第二十二课 - 传闻表达</option>
+                        <option value="第二十三课">第二十三课 - 条件假设</option>
+                        <option value="第二十四课">第二十四课 - 敬语综合</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <label for="wordTypeFilter">📝 词性筛选:</label>
+                    <select id="wordTypeFilter" class="control-select" onchange="filterVocabulary()">
+                        <option value="all">显示全部词性</option>
+                        <option value="名词">名词</option>
+                        <option value="动词">动词</option>
+                        <option value="形容词">形容词</option>
+                        <option value="副词">副词</option>
+                        <option value="代词">代词</option>
+                        <option value="助词">助词</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="loadAllVocabulary()">🔄 刷新数据</button>
+                        <button class="btn btn-secondary" onclick="expandAll()">📂 展开全部</button>
+                        <button class="btn btn-secondary" onclick="collapseAll()">📁 折叠全部</button>
+                        <button class="btn btn-success" onclick="startSelectedPractice()">🎯 练习选中单词</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 选择统计 -->
+            <div class="selection-summary" id="selectionSummary" style="display: none;">
+                <div class="summary-title">📊 选择统计</div>
+                <div class="summary-stats">
+                    <div class="summary-item">
+                        <span>✅ 已选择:</span>
+                        <span id="selectedCount">0</span>
+                        <span>个单词</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>📚 涉及课程:</span>
+                        <span id="selectedLessons">无</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>🗂️ 涉及栏目:</span>
+                        <span id="selectedCategories">无</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 词汇展示区域 -->
+            <div class="vocabulary-display" id="vocabularyDisplay">
+                <div class="loading">正在加载词汇数据...</div>
+            </div>
+        </main>
+    </div>
+    <script src="vocabulary-manager.js"></script>
+    <script src="vocabulary-browser.js"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词汇加载测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .log {
+            background: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #007cba;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #ffe6e6;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #e6ffe6;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #005a8b;
+        }
+    </style>
+</head>
+<body>
+    <h1>词汇数据加载测试</h1>
+
+    <div class="test-section">
+        <h2>📂 文件路径测试</h2>
+        <button onclick="testPaths()">测试文件路径</button>
+        <div id="pathResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 词汇管理器测试</h2>
+        <button onclick="testVocabularyManager()">测试词汇管理器</button>
+        <div id="managerResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📖 课程数据测试</h2>
+        <button onclick="testLessonData()">测试第一课数据</button>
+        <div id="lessonResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 实时日志</h2>
+        <div id="logs"></div>
+    </div>
+
+    <script src="vocabulary-manager.js"></script>
+    <script>
+        // 重定向console.log到页面
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logsDiv = document.getElementById('logs');
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog('INFO', args.join(' '));
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog('ERROR', args.join(' '));
+        };
+
+        function addLog(type, message) {
+            const logDiv = document.createElement('div');
+            logDiv.className = `log ${type === 'ERROR' ? 'error' : ''}`;
+            logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${type}: ${message}`;
+            logsDiv.appendChild(logDiv);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        async function testPaths() {
+            const pathResults = document.getElementById('pathResults');
+            pathResults.innerHTML = '';
+
+            const paths = [
+                '../data/vocabulary/vocabulary_index.csv',
+                'data/vocabulary/vocabulary_index.csv',
+                '/data/vocabulary/vocabulary_index.csv',
+                '../data/vocabulary/lesson_01_vocabulary.csv',
+                'data/vocabulary/lesson_01_vocabulary.csv'
+            ];
+
+            for (const path of paths) {
+                try {
+                    const response = await fetch(path);
+                    const div = document.createElement('div');
+                    div.className = `log ${response.ok ? 'success' : 'error'}`;
+                    div.textContent = `${path}: ${response.status} ${response.statusText}`;
+                    pathResults.appendChild(div);
+                } catch (error) {
+                    const div = document.createElement('div');
+                    div.className = 'log error';
+                    div.textContent = `${path}: 加载失败 - ${error.message}`;
+                    pathResults.appendChild(div);
+                }
+            }
+        }
+
+        async function testVocabularyManager() {
+            const managerResults = document.getElementById('managerResults');
+            managerResults.innerHTML = '';
+
+            const div = document.createElement('div');
+            div.className = 'log';
+
+            if (window.vocabularyManager) {
+                div.textContent = '✅ 词汇管理器已创建';
+                div.className += ' success';
+                
+                // 显示加载的课程数量
+                setTimeout(() => {
+                    const courseCount = window.vocabularyManager.categoryData.size;
+                    const div2 = document.createElement('div');
+                    div2.className = 'log success';
+                    div2.textContent = `📚 已加载课程数量: ${courseCount}`;
+                    managerResults.appendChild(div2);
+
+                    // 显示课程列表
+                    if (courseCount > 0) {
+                        const courses = Array.from(window.vocabularyManager.categoryData.keys());
+                        const div3 = document.createElement('div');
+                        div3.className = 'log';
+                        div3.textContent = `课程列表: ${courses.join(', ')}`;
+                        managerResults.appendChild(div3);
+                    }
+                }, 1000);
+            } else {
+                div.textContent = '❌ 词汇管理器未创建';
+                div.className += ' error';
+            }
+
+            managerResults.appendChild(div);
+        }
+
+        async function testLessonData() {
+            const lessonResults = document.getElementById('lessonResults');
+            lessonResults.innerHTML = '';
+
+            if (!window.vocabularyManager) {
+                const div = document.createElement('div');
+                div.className = 'log error';
+                div.textContent = '❌ 词汇管理器未就绪';
+                lessonResults.appendChild(div);
+                return;
+            }
+
+            try {
+                const words = await window.vocabularyManager.loadLessonVocabulary('第一课');
+                const div = document.createElement('div');
+                div.className = 'log success';
+                div.textContent = `✅ 第一课加载成功: ${words.length} 个单词`;
+                lessonResults.appendChild(div);
+
+                if (words.length > 0) {
+                    const sampleDiv = document.createElement('div');
+                    sampleDiv.className = 'log';
+                    sampleDiv.textContent = `示例单词: ${JSON.stringify(words[0], null, 2)}`;
+                    lessonResults.appendChild(sampleDiv);
+                }
+            } catch (error) {
+                const div = document.createElement('div');
+                div.className = 'log error';
+                div.textContent = `❌ 第一课加载失败: ${error.message}`;
+                lessonResults.appendChild(div);
+            }
+        }
+
+        // 页面加载时自动运行测试
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('页面加载完成，开始自动测试...');
+                testPaths();
+                testVocabularyManager();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

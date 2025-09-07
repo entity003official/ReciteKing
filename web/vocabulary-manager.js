@@ -10,42 +10,70 @@ class VocabularyDataManager {
     }
 
     async initializeManager() {
+        console.log('开始初始化词汇管理器...');
         await this.loadVocabularyIndex();
         this.setupSelectionHandlers();
+        console.log('词汇管理器初始化完成');
     }
 
     // 加载词汇索引文件
     async loadVocabularyIndex() {
         try {
-            const response = await fetch('../data/vocabulary/vocabulary_index.csv');
+            console.log('尝试加载词汇索引文件...');
+            // 尝试相对路径（从web目录访问上级目录的data）
+            let response = await fetch('../data/vocabulary/vocabulary_index.csv');
+            if (!response.ok) {
+                console.log('相对路径失败，尝试当前目录下的data路径...');
+                response = await fetch('data/vocabulary/vocabulary_index.csv');
+            }
+            if (!response.ok) {
+                throw new Error(`无法加载词汇索引文件: ${response.status} ${response.statusText}`);
+            }
+            console.log('成功获取词汇索引文件');
             const text = await response.text();
+            console.log('词汇索引文件内容长度:', text.length);
             this.parseVocabularyIndex(text);
         } catch (error) {
             console.error('加载词汇索引失败:', error);
-            this.createDefaultIndex();
+            throw error;
         }
     }
 
     // 解析词汇索引
     parseVocabularyIndex(text) {
         const lines = text.trim().split('\n');
+        console.log(`词汇索引文件共 ${lines.length} 行`);
         
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line) {
                 const parts = this.parseCSVLine(line);
-                if (parts.length >= 4) {
-                    const [lesson, filename, wordCount, categories] = parts;
-                    this.categoryData.set(lesson, {
-                        filename: filename,
-                        wordCount: parseInt(wordCount) || 0,
-                        categories: categories ? categories.split('|') : []
+                console.log(`解析第 ${i} 行:`, parts);
+                
+                if (parts.length >= 6) {
+                    // CSV格式：课程,总单词数,栏目数,主要词性,难度级别,文件名
+                    const [lesson, wordCount, categoryCount, wordTypes, difficulty, filename] = parts;
+                    const lessonName = lesson.replace(/"/g, '');
+                    const filenameClean = filename.replace(/"/g, '');
+                    
+                    this.categoryData.set(lessonName, {
+                        filename: filenameClean,
+                        wordCount: parseInt(wordCount.replace(/"/g, '')) || 0,
+                        categories: [] // 先设为空，稍后从实际文件中获取
                     });
+                    
+                    console.log(`加载课程: ${lessonName}, 文件: ${filenameClean}`);
                 }
             }
         }
         
         console.log('词汇索引加载完成:', this.categoryData.size, '个课程');
+        
+        // 如果没有加载到任何课程，创建默认索引
+        if (this.categoryData.size === 0) {
+            console.log('未找到课程数据，创建默认索引');
+            this.createDefaultIndex();
+        }
     }
 
     // 创建默认索引（如果加载失败）
@@ -103,7 +131,18 @@ class VocabularyDataManager {
         }
 
         try {
-            const response = await fetch(`../data/vocabulary/${lessonInfo.filename}`);
+            // 尝试相对路径（从web目录访问上级目录的data）
+            let response = await fetch(`../data/vocabulary/${lessonInfo.filename}`);
+            
+            if (!response.ok) {
+                // 如果相对路径失败，尝试从当前目录下的data
+                response = await fetch(`data/vocabulary/${lessonInfo.filename}`);
+            }
+            
+            if (!response.ok) {
+                throw new Error(`无法加载文件: ${lessonInfo.filename}, 状态: ${response.status}`);
+            }
+            
             const text = await response.text();
             const words = this.parseVocabularyCSV(text);
             
@@ -343,6 +382,11 @@ class VocabularyDataManager {
             [array[i], array[j]] = [array[j], array[i]];
         }
         return array;
+    }
+
+    // 获取所有课程名
+    getAllLessonNames() {
+        return Array.from(this.categoryData.keys());
     }
 }
 

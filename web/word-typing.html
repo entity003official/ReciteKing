@@ -3,9 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>假名背诵王 - 单词输入练习</title>
+    <title>单词个性化背诵 - 假名背诵王</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
     <style>
-        /* 导航样式 */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
         .nav-header {
             position: sticky;
             top: 0;
@@ -16,22 +28,19 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             border-radius: 0 0 16px 16px;
         }
-
         .nav-content {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .nav-header h1 {
             color: white;
             margin: 0;
             font-size: 1.5rem;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
-
         .nav-links {
             display: flex;
             gap: 0.5rem;
@@ -40,7 +49,6 @@
             border-radius: 12px;
             backdrop-filter: blur(10px);
         }
-
         .nav-links a {
             padding: 0.6rem 1rem;
             text-decoration: none;
@@ -52,101 +60,163 @@
             position: relative;
             overflow: hidden;
         }
-
-        .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-1px);
-        }
-
         .nav-links a.active {
-            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
             color: #333;
             font-weight: 600;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-
-        .nav-links a.active:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
         }
-
-        @media (max-width: 768px) {
-            .nav-header {
-                padding: 1rem;
-            }
-            
-            .nav-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .nav-header h1 {
-                font-size: 1.3rem;
-            }
-            
-            .nav-links a {
-                padding: 0.5rem 0.8rem;
-                font-size: 0.8rem;
-            }
-        }
-
-        /* 练习状态显示样式 */
-        .status-info {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
-            padding: 1rem;
-            border-radius: 8px;
-            border-left: 4px solid #2196f3;
-            margin-top: 0.5rem;
-        }
-
-        .status-info span {
-            font-size: 0.9rem;
-            color: #333;
-        }
-
-        #selectedInfo {
-            font-weight: 600;
-            color: #1976d2;
-        }
-
-        #wordCountInfo {
-            color: #388e3c;
-        }
-
-        /* 设置行样式优化 */
-        .setting-row {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .setting-row label {
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
-
-        .setting-select {
-            padding: 0.75rem;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1rem;
+        .card {
             background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 20px 0 10px 0;
+            color: #667eea;
+        }
+        .collapsible-section {
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f5f5f5;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .section-header:hover {
+            background: #ebebeb;
+        }
+        .section-header input[type="checkbox"] {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+        }
+        .section-header label {
+            flex: 1;
+            margin: 0;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .collapse-icon {
+            font-size: 12px;
+            transition: transform 0.2s;
+            margin-left: 10px;
+        }
+        .collapse-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .section-content {
+            padding: 15px;
+            background: white;
+            max-height: 600px;
+            overflow-y: auto;
             transition: all 0.3s ease;
         }
-
-        .setting-select:focus {
-            outline: none;
-            border-color: #2196f3;
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        .section-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            overflow: hidden;
         }
-
-        .setting-select:hover {
-            border-color: #bdbdbd;
+        .word-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 10px;
+        }
+        .word-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 6px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background: #fafbff;
+        }
+        .word-item.selected {
+            border-color: #667eea;
+            background: #e6f0ff;
+        }
+        .word-checkbox {
+            width: 16px;
+            height: 16px;
+        }
+        .word-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .word-kana {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+        }
+        .word-kanji {
+            font-size: 1em;
+            color: #666;
+        }
+        .word-meaning {
+            font-size: 0.95em;
+            color: #888;
+        }
+        .word-type {
+            font-size: 0.85em;
+            color: #aaa;
+        }
+        .repeat-control {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .repeat-btn {
+            width: 22px;
+            height: 22px;
+            border: none;
+            background: #e2e8f0;
+            color: #4a5568;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        .repeat-count {
+            min-width: 24px;
+            text-align: center;
+            font-size: 1em;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .selected-count {
+            text-align: center;
+            padding: 10px;
+            background: #e6f0ff;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: #333;
+        }
+        .hidden { display: none; }
+        @media (max-width: 700px) {
+            .container { padding: 8px; }
+            .nav-content { max-width: 100%; }
+            .card { padding: 15px; }
+            .word-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -155,7 +225,7 @@
         <header>
             <nav class="nav-header">
                 <div class="nav-content">
-                    <h1>🎌 假名背诵王 - 单词练习</h1>
+                    <h1>✏️ 单词个性化背诵</h1>
                     <div class="nav-links">
                         <a href="index.html">🏠 首页</a>
                         <a href="word-typing.html" class="active">✏️ 单词输入</a>
@@ -166,284 +236,16 @@
                 </div>
             </nav>
         </header>
-
-        <!-- 主菜单 -->
-        <main id="mainMenu" class="main-content">
-            <div class="welcome-section">
-                <h2>📝 日语单词输入练习</h2>
-                <p>通过中文释义练习假名输入，提高日语输入技能</p>
+        <div class="card settings" id="wordSettingsPanel">
+            <h3>单词个性化背诵设置</h3>
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="selectAllWords()">全选</button>
+                <button class="btn btn-secondary" onclick="deselectAllWords()">全不选</button>
+                <span class="selected-count">已选择：<span id="selectedWordCount">0</span> 个单词</span>
             </div>
-
-            <!-- 练习设置 -->
-            <section class="settings-panel">
-                <h3>⚙️ 练习设置</h3>
-                
-                <!-- 课程选择 -->
-                <div class="setting-row">
-                    <label for="lessonSelect">📚 选择课程：</label>
-                    <select id="lessonSelect" class="setting-select" onchange="updateCategoryOptions()">
-                        <option value="all" selected>全部课程</option>
-                        <option value="第一课">第一课 - 初次见面</option>
-                        <option value="第二课">第二课 - 这是什么</option>
-                        <option value="第三课">第三课 - 这里是什么地方</option>
-                        <option value="第四课">第四课 - 时间安排</option>
-                        <option value="第五课">第五课 - 交通出行</option>
-                        <option value="第六课">第六课 - 日常活动</option>
-                        <option value="第七课">第七课 - 授受表现</option>
-                        <option value="第八课">第八课 - 形容词练习</option>
-                        <option value="第九课">第九课 - 喜好表达</option>
-                        <option value="第十课">第十课 - 存在表现</option>
-                        <option value="第十一课">第十一课 - 数量表达</option>
-                        <option value="第十二课">第十二课 - 过去时态</option>
-                        <option value="第十三课">第十三课 - 愿望表达</option>
-                        <option value="第十四课">第十四课 - 进行时态</option>
-                        <option value="第十五课">第十五课 - 许可禁止</option>
-                        <option value="第十六课">第十六课 - 兴趣爱好</option>
-                        <option value="第十七课">第十七课 - 能力可能</option>
-                        <option value="第十八课">第十八课 - 动作顺序</option>
-                        <option value="第十九课">第十九课 - 经验表达</option>
-                        <option value="第二十课">第二十课 - 敬语表现</option>
-                        <option value="第二十一课">第二十一课 - 意见建议</option>
-                        <option value="第二十二课">第二十二课 - 传闻表达</option>
-                        <option value="第二十三课">第二十三课 - 条件假设</option>
-                        <option value="第二十四课">第二十四课 - 敬语综合</option>
-                    </select>
-                </div>
-
-                <!-- 栏目选择 -->
-                <div class="setting-row">
-                    <label for="categorySelect">🗂️ 选择栏目：</label>
-                    <select id="categorySelect" class="setting-select">
-                        <option value="all" selected>全部栏目</option>
-                    </select>
-                </div>
-
-                <div class="setting-row">
-                    <label for="wordCategory">词性筛选：</label>
-                    <select id="wordCategory" class="setting-select">
-                        <option value="all" selected>全部词性</option>
-                        <option value="名词">名词</option>
-                        <option value="动词">动词</option>
-                        <option value="形容词">形容词</option>
-                        <option value="副词">副词</option>
-                        <option value="代词">代词</option>
-                        <option value="助词">助词</option>
-                    </select>
-                </div>
-
-                <div class="setting-row">
-                    <label for="practiceMode">练习模式：</label>
-                    <select id="practiceMode" class="setting-select">
-                        <option value="practice" selected>练习模式 (显示提示)</option>
-                        <option value="test">测试模式 (无提示)</option>
-                        <option value="review">复习模式 (错误重练)</option>
-                    </select>
-                </div>
-
-                <div class="setting-row">
-                    <label for="wordCount">练习数量：</label>
-                    <select id="wordCount" class="setting-select">
-                        <option value="10" selected>10个</option>
-                        <option value="20">20个</option>
-                        <option value="30">30个</option>
-                        <option value="50">50个</option>
-                        <option value="all">全部</option>
-                    </select>
-                </div>
-
-                <!-- 练习状态显示 -->
-                <div class="setting-row" id="practiceStatus" style="display: none;">
-                    <div class="status-info">
-                        <span id="selectedInfo">当前选择：全部课程</span>
-                        <span id="wordCountInfo">可练习单词：0个</span>
-                    </div>
-                </div>
-            </section>
-
-            <div class="start-section">
-                <button class="start-btn" onclick="startWordPractice()">
-                    🎯 开始单词练习
-                </button>
-            </div>
-        </main>
-
-        <!-- 练习界面 -->
-        <main id="practiceScreen" class="practice-content" style="display: none;">
-            <div class="practice-header">
-                <button class="back-btn" onclick="backToMenu()">← 返回</button>
-                <div class="progress-info">
-                    <span id="currentWordProgress">1 / 10</span>
-                    <span class="score-info">得分: <span id="currentScore">0</span></span>
-                </div>
-            </div>
-
-            <!-- 题目显示区 -->
-            <div class="question-area">
-                <div class="question-card">
-                    <div class="chinese-meaning">
-                        <span id="chineseMeaning">爱情</span>
-                    </div>
-                    <div class="word-info">
-                        <div class="kanji-word" id="kanjiWord" style="display: none;">愛</div>
-                        <div class="word-category">
-                            <span id="wordCategory">名词</span> | 
-                            <span id="wordDifficulty">难度: ★☆☆</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 输入区域 -->
-            <div class="input-section">
-                <div class="input-area">
-                    <div class="kana-display">
-                        <span id="kanaDisplay">あい</span>
-                    </div>
-                    <div class="romaji-input-container">
-                        <input type="text" 
-                               id="romajiInput" 
-                               placeholder="输入罗马音 (如: ai)"
-                               autocomplete="off"
-                               autocapitalize="off"
-                               spellcheck="false">
-                        <button class="clear-btn" onclick="clearInput()">清空</button>
-                    </div>
-                </div>
-
-                <!-- 假名选择器 -->
-                <div class="kana-selector" id="kanaSelector" style="display: none;">
-                    <div class="selector-header">
-                        <span class="selector-title">选择假名:</span>
-                        <div class="kana-type-switch">
-                            <button class="type-btn active" data-type="hiragana">平假名</button>
-                            <button class="type-btn" data-type="katakana">片假名</button>
-                        </div>
-                    </div>
-                    <div class="kana-options" id="kanaOptions"></div>
-                </div>
-
-                <!-- 提交按钮 -->
-                <div class="submit-section">
-                    <button class="submit-btn" onclick="submitAnswer()" id="submitBtn" disabled>
-                        ✓ 提交答案
-                    </button>
-                    <button class="hint-btn" onclick="showHint()" id="hintBtn">
-                        💡 显示提示
-                    </button>
-                </div>
-            </div>
-
-            <!-- 答案反馈 -->
-            <div class="feedback-area" id="feedbackArea" style="display: none;">
-                <div class="feedback-card">
-                    <div class="feedback-result" id="feedbackResult">
-                        <span class="result-icon">✓</span>
-                        <span class="result-text">正确！</span>
-                    </div>
-                    <div class="correct-answer">
-                        <div class="answer-display">
-                            <span class="kana-answer" id="correctKana">あい</span>
-                            <span class="kanji-answer" id="correctKanji">愛</span>
-                        </div>
-                        <div class="answer-romaji" id="correctRomaji">ai</div>
-                    </div>
-                    <button class="next-word-btn" onclick="nextWord()">
-                        下一个单词 →
-                    </button>
-                </div>
-            </div>
-        </main>
-
-        <!-- 结果界面 -->
-        <main id="resultScreen" class="result-content" style="display: none;">
-            <div class="result-card">
-                <h2>🎉 练习完成！</h2>
-                <div class="final-stats">
-                    <div class="stat-item">
-                        <span class="stat-label">总题数：</span>
-                        <span class="stat-value" id="totalQuestions">10</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">正确数：</span>
-                        <span class="stat-value" id="correctAnswers">8</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">正确率：</span>
-                        <span class="stat-value" id="accuracyRate">80%</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">总得分：</span>
-                        <span class="stat-value" id="finalScore">160</span>
-                    </div>
-                </div>
-
-                <!-- 错误回顾 -->
-                <div class="error-review" id="errorReview" style="display: none;">
-                    <h3>📋 错误回顾</h3>
-                    <div class="error-list" id="errorList"></div>
-                </div>
-
-                <div class="result-actions">
-                    <button class="restart-btn" onclick="startWordPractice()">🔄 重新练习</button>
-                    <button class="review-btn" onclick="startReviewMode()" id="reviewBtn" style="display: none;">
-                        📖 复习错题
-                    </button>
-                    <button class="menu-btn" onclick="backToMenu()">📋 返回设置</button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- 罗马音键盘 -->
-    <div class="romaji-keyboard" id="romajiKeyboard" style="display: none;">
-        <div class="keyboard-header">
-            <span>罗马音键盘</span>
-            <button class="close-keyboard" onclick="closeKeyboard()">×</button>
-        </div>
-        <div class="keyboard-rows">
-            <div class="keyboard-row">
-                <button class="key-btn" onclick="addRomaji('a')">a</button>
-                <button class="key-btn" onclick="addRomaji('i')">i</button>
-                <button class="key-btn" onclick="addRomaji('u')">u</button>
-                <button class="key-btn" onclick="addRomaji('e')">e</button>
-                <button class="key-btn" onclick="addRomaji('o')">o</button>
-                <button class="key-btn" onclick="addRomaji('n')">n</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="key-btn" onclick="addRomaji('k')">k</button>
-                <button class="key-btn" onclick="addRomaji('s')">s</button>
-                <button class="key-btn" onclick="addRomaji('t')">t</button>
-                <button class="key-btn" onclick="addRomaji('h')">h</button>
-                <button class="key-btn" onclick="addRomaji('m')">m</button>
-                <button class="key-btn" onclick="addRomaji('r')">r</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="key-btn" onclick="addRomaji('y')">y</button>
-                <button class="key-btn" onclick="addRomaji('w')">w</button>
-                <button class="key-btn" onclick="addRomaji('g')">g</button>
-                <button class="key-btn" onclick="addRomaji('z')">z</button>
-                <button class="key-btn" onclick="addRomaji('d')">d</button>
-                <button class="key-btn" onclick="addRomaji('b')">b</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="key-btn" onclick="addRomaji('p')">p</button>
-                <button class="key-btn" onclick="addRomaji('j')">j</button>
-                <button class="key-btn" onclick="addRomaji('c')">c</button>
-                <button class="key-btn special" onclick="addRomaji('shi')">shi</button>
-                <button class="key-btn special" onclick="addRomaji('chi')">chi</button>
-                <button class="key-btn special" onclick="addRomaji('tsu')">tsu</button>
-            </div>
-            <div class="keyboard-row">
-                <button class="key-btn backspace" onclick="backspaceRomaji()">⌫</button>
-                <button class="key-btn space" onclick="addSpace()">Space</button>
-                <button class="key-btn enter" onclick="confirmInput()">Enter</button>
-            </div>
+            <div id="wordCourseList"></div>
         </div>
     </div>
-
-    <script src="kana-data.js"></script>
-    <script src="romaji-converter.js"></script>
-    <script src="vocabulary-manager.js"></script>
     <script src="word-typing.js"></script>
 </body>
 </html>

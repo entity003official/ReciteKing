@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交答案测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 提交答案功能测试</h1>
+        
+        <div class="test-section">
+            <h2>基础测试</h2>
+            <p><strong>题目：</strong>请输入"水"的假名</p>
+            <p><strong>正确答案：</strong>みず (mizu)</p>
+            
+            <input type="text" id="testInput" placeholder="请输入罗马音...">
+            <button id="testSubmit" onclick="testSubmit()" disabled>提交答案</button>
+            <button onclick="showHint()">显示提示</button>
+            
+            <div id="testResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>单词应用测试</h2>
+            <button onclick="initWordApp()">初始化单词应用</button>
+            <button onclick="testWordAppSubmit()">测试单词应用提交</button>
+            <div id="wordAppResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>实时日志</h2>
+            <div id="logs" class="log"></div>
+        </div>
+    </div>
+
+    <script src="romaji-converter.js"></script>
+    <script src="vocabulary-manager.js"></script>
+    <script src="word-typing.js"></script>
+    <script>
+        // 全局变量
+        let converter = null;
+        let testWord = {
+            kana: 'みず',
+            kanji: '水',
+            meaning: '水',
+            category: '名词',
+            difficulty: 1
+        };
+
+        // 重定向console输出
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logsDiv = document.getElementById('logs');
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog('INFO', args.join(' '));
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog('ERROR', args.join(' '));
+        };
+
+        function addLog(type, message) {
+            const logDiv = document.createElement('div');
+            logDiv.textContent = `[${new Date().toLocaleTimeString()}] ${type}: ${message}`;
+            logsDiv.appendChild(logDiv);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        // 初始化转换器
+        function initConverter() {
+            try {
+                converter = new RomajiConverter();
+                console.log('罗马音转换器初始化成功');
+                return true;
+            } catch (error) {
+                console.error('罗马音转换器初始化失败:', error);
+                return false;
+            }
+        }
+
+        // 输入监听
+        document.getElementById('testInput').addEventListener('input', function(e) {
+            const input = e.target.value.trim();
+            const submitBtn = document.getElementById('testSubmit');
+            submitBtn.disabled = input.length === 0;
+            
+            console.log('输入变化:', input);
+            console.log('提交按钮状态:', submitBtn.disabled ? '禁用' : '启用');
+        });
+
+        // 回车提交
+        document.getElementById('testInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const submitBtn = document.getElementById('testSubmit');
+                if (!submitBtn.disabled) {
+                    testSubmit();
+                }
+            }
+        });
+
+        // 测试提交功能
+        function testSubmit() {
+            console.log('测试提交函数被调用');
+            
+            if (!converter) {
+                if (!initConverter()) {
+                    showResult('❌ 转换器初始化失败', 'incorrect');
+                    return;
+                }
+            }
+
+            const input = document.getElementById('testInput').value.trim().toLowerCase();
+            console.log('用户输入:', input);
+            
+            if (!input) {
+                showResult('❌ 请输入内容', 'incorrect');
+                return;
+            }
+
+            try {
+                const userKana = converter.convert(input);
+                const correctKana = testWord.kana;
+                const isCorrect = userKana === correctKana;
+                
+                console.log('转换结果:', userKana);
+                console.log('正确答案:', correctKana);
+                console.log('是否正确:', isCorrect);
+
+                if (isCorrect) {
+                    showResult(`✅ 正确！输入: ${input} → ${userKana}`, 'correct');
+                } else {
+                    showResult(`❌ 错误！输入: ${input} → ${userKana}，正确答案: ${correctKana}`, 'incorrect');
+                }
+            } catch (error) {
+                console.error('转换过程出错:', error);
+                showResult('❌ 转换过程出错: ' + error.message, 'incorrect');
+            }
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.textContent = message;
+            resultDiv.className = `result ${type}`;
+        }
+
+        function showHint() {
+            if (!converter && !initConverter()) {
+                return;
+            }
+            
+            const romaji = converter.kanaToRomaji(testWord.kana);
+            showResult(`💡 提示：罗马音是 ${romaji}`, '');
+        }
+
+        // 测试单词应用
+        function initWordApp() {
+            try {
+                if (window.wordApp) {
+                    console.log('单词应用已存在');
+                    document.getElementById('wordAppResult').innerHTML = '<div class="result correct">✅ 单词应用已就绪</div>';
+                } else {
+                    console.log('单词应用不存在，尝试创建...');
+                    // 这里可能需要等待word-typing.js完全加载
+                    setTimeout(() => {
+                        if (window.wordApp) {
+                            console.log('单词应用创建成功');
+                            document.getElementById('wordAppResult').innerHTML = '<div class="result correct">✅ 单词应用创建成功</div>';
+                        } else {
+                            console.error('单词应用创建失败');
+                            document.getElementById('wordAppResult').innerHTML = '<div class="result incorrect">❌ 单词应用创建失败</div>';
+                        }
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('单词应用初始化出错:', error);
+                document.getElementById('wordAppResult').innerHTML = '<div class="result incorrect">❌ 单词应用初始化出错</div>';
+            }
+        }
+
+        function testWordAppSubmit() {
+            if (!window.wordApp) {
+                document.getElementById('wordAppResult').innerHTML = '<div class="result incorrect">❌ 单词应用未初始化</div>';
+                return;
+            }
+
+            try {
+                // 测试submitAnswer函数是否存在
+                if (typeof window.wordApp.submitAnswer === 'function') {
+                    console.log('submitAnswer函数存在');
+                    document.getElementById('wordAppResult').innerHTML = '<div class="result correct">✅ submitAnswer函数可用</div>';
+                } else {
+                    console.error('submitAnswer函数不存在');
+                    document.getElementById('wordAppResult').innerHTML = '<div class="result incorrect">❌ submitAnswer函数不存在</div>';
+                }
+            } catch (error) {
+                console.error('测试单词应用提交功能出错:', error);
+                document.getElementById('wordAppResult').innerHTML = '<div class="result incorrect">❌ 测试出错: ' + error.message + '</div>';
+            }
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', () => {
+            console.log('测试页面加载完成');
+            initConverter();
+            
+            // 延迟初始化单词应用测试
+            setTimeout(() => {
+                initWordApp();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,857 +1,228 @@
-// 单词练习应用类
-class WordTypingApp {
+// 单词个性化背诵管理器
+class WordTypingSelector {
     constructor() {
-        this.converter = new RomajiConverter();
-        this.words = [];
-        this.currentWords = [];
-        this.currentWordIndex = 0;
-        this.currentWord = null;
-        this.score = 0;
-        this.correctAnswers = 0;
-        this.totalQuestions = 0;
-        this.errors = [];
-        this.settings = {
-            lesson: 'all',
-            categoryName: 'all',
-            category: 'all',
-            mode: 'practice',
-            count: 10
-        };
-        this.hintShown = false;
-        this.keyboardVisible = false;
-        this.conversionHintTimeout = null;
-
-        this.initializeApp();
+        this.vocabData = {};
+        this.selectedWords = new Map(); // key: wordId, value: { ...word, repeatCount }
+        this.init();
     }
 
-    async initializeApp() {
-        await this.loadWords();
-        this.setupEventListeners();
-        this.updateKeyboardToggle();
+    async init() {
+        await this.loadAllVocabulary();
+        this.renderCourseList();
+        this.updateSelectedCount();
     }
 
-    // 加载单词数据
-    async loadWords() {
-        // 等待词汇管理器初始化
+    // 加载所有课程的单词，按课程/栏目/单词三级分组
+    async loadAllVocabulary() {
         if (!window.vocabularyManager) {
             await new Promise(resolve => {
-                const checkManager = () => {
-                    if (window.vocabularyManager) {
-                        resolve();
-                    } else {
-                        setTimeout(checkManager, 100);
-                    }
+                const check = () => {
+                    if (window.vocabularyManager) resolve();
+                    else setTimeout(check, 100);
                 };
-                checkManager();
+                check();
             });
         }
-
-        // 检查是否有来自课程选择的单词数据
-        const practiceWords = localStorage.getItem('practiceWords');
-        const practiceType = localStorage.getItem('practiceType');
-        
-        if (practiceWords && practiceType === 'curriculum') {
+        // 获取所有课程名
+        let lessons = [];
+        try {
+            lessons = await window.vocabularyManager.getAllLessonNames();
+        } catch (e) {
+            lessons = [];
+        }
+        this.vocabData = {};
+        let hasData = false;
+        for (const lesson of lessons) {
+            let words = [];
             try {
-                const selectedWords = JSON.parse(practiceWords);
-                this.words = this.convertCurriculumWords(selectedWords);
-                console.log(`已加载课程选择的 ${this.words.length} 个单词`);
-                // 清除已使用的数据
-                localStorage.removeItem('practiceWords');
-                localStorage.removeItem('practiceType');
-                return;
-            } catch (error) {
-                console.error('解析课程单词数据失败:', error);
+                words = await window.vocabularyManager.loadLessonVocabulary(lesson);
+            } catch (e) {
+                words = [];
+            }
+            for (const word of words) {
+                hasData = true;
+                const section = word.category || '未分类';
+                if (!this.vocabData[lesson]) this.vocabData[lesson] = {};
+                if (!this.vocabData[lesson][section]) this.vocabData[lesson][section] = [];
+                this.vocabData[lesson][section].push(word);
             }
         }
-        
-        // 默认加载第一课的数据作为示例
-        try {
-            const words = await window.vocabularyManager.loadLessonVocabulary('第一课');
-            this.words = this.convertVocabularyWords(words);
-            console.log(`已加载默认数据 ${this.words.length} 个单词`);
-        } catch (error) {
-            console.error('加载单词数据失败:', error);
-            // 使用默认单词数据
-            this.words = this.getDefaultWords();
+        // fallback: 若无数据，显示夸张报错信息
+        if (!hasData) {
+            throw new Error('【致命错误】未能加载任何单词数据！请检查词汇文件、数据源或 vocabularyManager 是否正常！\n\n【FATAL ERROR】NO VOCABULARY DATA LOADED!\n请联系开发者或检查数据配置。');
         }
     }
 
-    // 转换词汇管理器的数据格式
-    convertVocabularyWords(vocabularyWords) {
-        return vocabularyWords.map(word => ({
-            kana: word.kana || '',
-            kanji: word.kanji || '',
-            meaning: word.meaning || '',
-            category: word.wordType || '名词',
-            difficulty: this.getDifficultyFromLesson(word.lesson) || 1,
-            wordType: word.wordType || '名词',
-            romaji: word.romaji || '',
-            lesson: word.lesson || '',
-            categoryName: word.category || '基础词汇'
-        }));
-    }
-
-    // 转换课程单词格式
-    convertCurriculumWords(curriculumWords) {
-        return curriculumWords.map(word => ({
-            kana: word['假名'] || word.kana || '',
-            kanji: word['汉字'] || word.kanji || '',
-            meaning: word['释义'] || word.meaning || '',
-            category: `${word['课程']}-${word['课次']}` || word.category || '未分类',
-            difficulty: this.getDifficultyFromLesson(word['课次']) || word.difficulty || 1,
-            wordType: word['词性'] || word.wordType || '名词',
-            romaji: word['罗马字'] || word.romaji || '',
-            example: word['例句假名'] || word.example || '',
-            exampleKanji: word['例句汉字'] || word.exampleKanji || '',
-            exampleMeaning: word['例句释义'] || word.exampleMeaning || ''
-        }));
-    }
-
-    // 根据课次推断难度
-    getDifficultyFromLesson(lessonName) {
-        if (!lessonName) return 1;
-        const lessonNum = parseInt(lessonName.replace(/[^0-9]/g, ''));
-        if (lessonNum <= 5) return 1;
-        if (lessonNum <= 15) return 2;
-        if (lessonNum <= 25) return 3;
-        return 4;
-    }
-
-    parseCSV(text) {
-        const lines = text.trim().split('\n');
-        const words = [];
-        
-        // 跳过标题行
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (line) {
-                const [kana, kanji, meaning, category, difficulty] = line.split(',');
-                words.push({
-                    kana: kana?.trim(),
-                    kanji: kanji?.trim(),
-                    meaning: meaning?.trim(),
-                    category: category?.trim(),
-                    difficulty: parseInt(difficulty?.trim()) || 1
-                });
-            }
-        }
-        
-        return words.filter(word => word.kana && word.meaning);
-    }
-
-    getDefaultWords() {
-        return [
-            { kana: 'あい', kanji: '愛', meaning: '爱情', category: '名词', difficulty: 1 },
-            { kana: 'みず', kanji: '水', meaning: '水', category: '名词', difficulty: 1 },
-            { kana: 'ひ', kanji: '火', meaning: '火', category: '名词', difficulty: 1 },
-            { kana: 'つち', kanji: '土', meaning: '土', category: '名词', difficulty: 1 },
-            { kana: 'かぜ', kanji: '風', meaning: '风', category: '名词', difficulty: 1 }
-        ];
-    }
-
-    // 设置事件监听器
-    setupEventListeners() {
-        // 输入框事件
-        const romajiInput = document.getElementById('romajiInput');
-        if (romajiInput) {
-            romajiInput.addEventListener('input', (e) => this.handleRomajiInput(e));
-            romajiInput.addEventListener('keydown', (e) => this.handleKeyDown(e));
-        }
-
-        // 假名类型切换
-        document.querySelectorAll('.type-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.switchKanaType(e));
-        });
-
-        // 设置变化监听
-        document.querySelectorAll('.setting-select').forEach(select => {
-            select.addEventListener('change', (e) => this.updateSettings(e));
-        });
-    }
-
-    // 更新设置
-    updateSettings(event) {
-        const setting = event.target.id;
-        const value = event.target.value;
-        
-        switch (setting) {
-            case 'lessonSelect':
-                this.settings.lesson = value;
-                break;
-            case 'categorySelect':
-                this.settings.categoryName = value;
-                break;
-            case 'wordCategory':
-                this.settings.category = value;
-                break;
-            case 'practiceMode':
-                this.settings.mode = value;
-                break;
-            case 'wordCount':
-                this.settings.count = value === 'all' ? 'all' : parseInt(value);
-                break;
-        }
-    }
-
-    // 开始单词练习
-    async startWordPractice() {
-        await this.loadPracticeWords();
-        this.filterWords();
-        this.shuffleWords();
-        this.resetStats();
-        this.showPracticeScreen();
-        this.loadCurrentWord();
-    }
-
-    // 加载练习单词
-    async loadPracticeWords() {
-        if (!window.vocabularyManager) {
-            console.error('词汇管理器未初始化');
-            this.words = this.getDefaultWords();
+    // 渲染课程/栏目/单词分组
+    renderCourseList() {
+        const container = document.getElementById('wordCourseList');
+        if (!container) return;
+        container.innerHTML = '';
+        if (Object.keys(this.vocabData).length === 0) {
+            container.innerHTML = '<div style="color:#888;padding:2em;text-align:center;">暂无单词数据，请检查词汇文件或数据加载！</div>';
             return;
         }
-
-        try {
-            const lessonName = this.settings.lesson || 'all';
-            const categoryName = this.settings.categoryName || 'all';
-            const wordType = this.settings.category || 'all';
-            const count = this.settings.count || 10;
-
-            const words = await window.vocabularyManager.getPracticeWords(
-                lessonName, categoryName, wordType, count
-            );
-            
-            this.words = this.convertVocabularyWords(words);
-            console.log(`加载练习单词: ${this.words.length} 个`);
-        } catch (error) {
-            console.error('加载练习单词失败:', error);
-            this.words = this.getDefaultWords();
-        }
-    }
-
-    // 筛选单词（现在主要用于设置当前单词列表）
-    filterWords() {
-        // 现在过滤已在loadPracticeWords中完成，这里只需要设置当前单词列表
-        this.currentWords = [...this.words];
-        this.totalQuestions = this.currentWords.length;
-    }
-
-    // 打乱单词顺序
-    shuffleWords() {
-        for (let i = this.currentWords.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [this.currentWords[i], this.currentWords[j]] = [this.currentWords[j], this.currentWords[i]];
-        }
-    }
-
-    // 重置统计
-    resetStats() {
-        this.currentWordIndex = 0;
-        this.score = 0;
-        this.correctAnswers = 0;
-        this.errors = [];
-        this.hintShown = false;
-    }
-
-    // 显示练习界面
-    showPracticeScreen() {
-        document.getElementById('mainMenu').style.display = 'none';
-        document.getElementById('practiceScreen').style.display = 'block';
-        document.getElementById('resultScreen').style.display = 'none';
-    }
-
-    // 显示结果界面
-    showResultScreen() {
-        document.getElementById('mainMenu').style.display = 'none';
-        document.getElementById('practiceScreen').style.display = 'none';
-        document.getElementById('resultScreen').style.display = 'block';
-        this.displayResults();
-    }
-
-    // 返回主菜单
-    backToMenu() {
-        document.getElementById('mainMenu').style.display = 'block';
-        document.getElementById('practiceScreen').style.display = 'none';
-        document.getElementById('resultScreen').style.display = 'none';
-        this.closeKeyboard();
-    }
-
-    // 加载当前单词
-    loadCurrentWord() {
-        if (this.currentWordIndex >= this.currentWords.length) {
-            this.showResultScreen();
-            return;
-        }
-
-        this.currentWord = this.currentWords[this.currentWordIndex];
-        this.hintShown = false;
-
-        // 更新界面
-        this.updateQuestionDisplay();
-        this.resetInput();
-        this.clearFeedback();
-        this.updateProgress();
-    }
-
-    // 更新题目显示
-    updateQuestionDisplay() {
-        const chineseMeaning = document.getElementById('chineseMeaning');
-        const kanjiWord = document.getElementById('kanjiWord');
-        const wordCategory = document.getElementById('wordCategory');
-        const wordDifficulty = document.getElementById('wordDifficulty');
-
-        if (chineseMeaning) chineseMeaning.textContent = this.currentWord.meaning;
-        
-        // 根据模式决定是否显示汉字
-        if (kanjiWord) {
-            if (this.settings.mode === 'practice' || this.hintShown) {
-                kanjiWord.textContent = this.currentWord.kanji || '';
-                kanjiWord.style.display = this.currentWord.kanji ? 'block' : 'none';
-            } else {
-                kanjiWord.style.display = 'none';
+        let total = 0;
+        for (const lesson of Object.keys(this.vocabData)) {
+            const lessonId = `lesson-${lesson}`;
+            // 课程折叠区
+            const lessonSection = document.createElement('div');
+            lessonSection.className = 'collapsible-section';
+            // 课程头
+            const lessonHeader = document.createElement('div');
+            lessonHeader.className = 'section-header';
+            lessonHeader.innerHTML = `<input type="checkbox" class="lesson-checkbox"> <label>${lesson}</label><span class="collapse-icon">▼</span>`;
+            lessonSection.appendChild(lessonHeader);
+            // 课程内容
+            const lessonContent = document.createElement('div');
+            lessonContent.className = 'section-content';
+            // 栏目分组
+            for (const section of Object.keys(this.vocabData[lesson])) {
+                const sectionId = `section-${lesson}-${section}`;
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'collapsible-section';
+                // 栏目头
+                const sectionHeader = document.createElement('div');
+                sectionHeader.className = 'section-header';
+                sectionHeader.innerHTML = `<input type="checkbox" class="section-checkbox"> <label>${section}</label><span class="collapse-icon">▼</span>`;
+                sectionDiv.appendChild(sectionHeader);
+                // 单词列表
+                const sectionContent = document.createElement('div');
+                sectionContent.className = 'section-content';
+                sectionContent.innerHTML = '<div class="word-grid"></div>';
+                const wordGrid = sectionContent.querySelector('.word-grid');
+                for (const word of this.vocabData[lesson][section]) {
+                    total++;
+                    const wordId = `${lesson}|${section}|${word.kana}|${word.kanji}`;
+                    const wordItem = document.createElement('div');
+                    wordItem.className = 'word-item';
+                    wordItem.innerHTML = `
+                        <input type="checkbox" class="word-checkbox" data-word-id="${wordId}">
+                        <div class="word-info">
+                            <span class="word-kana">${word.kana || ''}</span>
+                            <span class="word-kanji">${word.kanji || ''}</span>
+                            <span class="word-meaning">${word.meaning || ''}</span>
+                            <span class="word-type">${word.wordType || ''}</span>
+                        </div>
+                        <div class="repeat-control">
+                            <button class="repeat-btn" data-word-id="${wordId}" data-action="dec">-</button>
+                            <span class="repeat-count" id="repeat-${wordId}">1</span>
+                            <button class="repeat-btn" data-word-id="${wordId}" data-action="inc">+</button>
+                        </div>
+                    `;
+                    wordGrid.appendChild(wordItem);
+                }
+                sectionDiv.appendChild(sectionContent);
+                lessonContent.appendChild(sectionDiv);
             }
+            lessonSection.appendChild(lessonContent);
+            container.appendChild(lessonSection);
         }
-
-        if (wordCategory) wordCategory.textContent = this.currentWord.category;
-        if (wordDifficulty) {
-            const stars = '★'.repeat(this.currentWord.difficulty) + '☆'.repeat(3 - this.currentWord.difficulty);
-            wordDifficulty.textContent = `难度: ${stars}`;
-        }
-
-        // 更新假名显示 (隐藏，用于答案对比)
-        const kanaDisplay = document.getElementById('kanaDisplay');
-        if (kanaDisplay) {
-            kanaDisplay.textContent = this.currentWord.kana;
-            kanaDisplay.style.visibility = 'hidden'; // 隐藏正确答案
-        }
+        this.bindEvents();
     }
 
-    // 重置输入
-    resetInput() {
-        const romajiInput = document.getElementById('romajiInput');
-        const submitBtn = document.getElementById('submitBtn');
-        
-        if (romajiInput) {
-            romajiInput.value = '';
-            romajiInput.disabled = false;
-            romajiInput.classList.remove('input-error', 'input-success');
-        }
-        
-        if (submitBtn) {
-            submitBtn.disabled = true;
-        }
-
-        this.clearConversionHint();
-    }
-
-    // 处理罗马音输入
-    handleRomajiInput(event) {
-        const input = event.target.value.toLowerCase();
-        const submitBtn = document.getElementById('submitBtn');
-        
-        // 启用/禁用提交按钮
-        if (submitBtn) {
-            submitBtn.disabled = input.trim().length === 0;
-        }
-
-        // 实时转换预览 (仅在练习模式)
-        if (this.settings.mode === 'practice') {
-            this.showConversionHint(input);
-        }
-
-        // 检查输入是否只包含有效字符
-        if (input && !this.isValidRomajiInput(input)) {
-            event.target.classList.add('input-error');
-        } else {
-            event.target.classList.remove('input-error');
-        }
-    }
-
-    // 检查罗马音输入是否有效
-    isValidRomajiInput(input) {
-        // 只允许罗马字母、空格和一些特殊字符
-        return /^[a-z\s\-]*$/i.test(input);
-    }
-
-    // 显示转换提示
-    showConversionHint(input) {
-        if (!input.trim()) {
-            this.clearConversionHint();
-            return;
-        }
-
-        // 清除之前的超时
-        if (this.conversionHintTimeout) {
-            clearTimeout(this.conversionHintTimeout);
-        }
-
-        // 延迟显示，避免过度更新
-        this.conversionHintTimeout = setTimeout(() => {
-            const converted = this.converter.convert(input);
-            const suggestions = this.converter.getSuggestions(input);
-            
-            this.displayConversionHint(input, converted, suggestions);
-        }, 300);
-    }
-
-    // 显示转换提示UI
-    displayConversionHint(input, converted, suggestions) {
-        let hintElement = document.querySelector('.conversion-hint');
-        
-        if (!hintElement) {
-            hintElement = document.createElement('div');
-            hintElement.className = 'conversion-hint';
-            const inputContainer = document.querySelector('.romaji-input-container');
-            inputContainer.parentNode.insertBefore(hintElement, inputContainer.nextSibling);
-        }
-
-        let hintHTML = `
-            <div class="conversion-preview">
-                "${input}" → ${converted || '(未完成)'}
-            </div>
-        `;
-
-        if (suggestions.length > 0) {
-            hintHTML += `
-                <div class="conversion-suggestions">
-                    建议: ${suggestions.join(', ')}
-                </div>
-            `;
-        }
-
-        hintElement.innerHTML = hintHTML;
-    }
-
-    // 清除转换提示
-    clearConversionHint() {
-        const hintElement = document.querySelector('.conversion-hint');
-        if (hintElement) {
-            hintElement.remove();
-        }
-        
-        if (this.conversionHintTimeout) {
-            clearTimeout(this.conversionHintTimeout);
-            this.conversionHintTimeout = null;
-        }
-    }
-
-    // 处理键盘按键
-    handleKeyDown(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            if (!document.getElementById('submitBtn').disabled) {
-                this.submitAnswer();
-            }
-        } else if (event.key === 'Escape') {
-            this.closeKeyboard();
-        }
-    }
-
-    // 提交答案
-    submitAnswer() {
-        const romajiInput = document.getElementById('romajiInput');
-        const userInput = romajiInput.value.trim().toLowerCase();
-        
-        if (!userInput) return;
-
-        // 转换用户输入
-        const userKana = this.converter.convert(userInput);
-        const correctKana = this.currentWord.kana;
-        
-        // 判断答案正确性
-        const isCorrect = userKana === correctKana;
-        
-        // 计算得分
-        let points = 0;
-        if (isCorrect) {
-            points = this.calculatePoints();
-            this.score += points;
-            this.correctAnswers++;
-        } else {
-            // 记录错误
-            this.errors.push({
-                word: this.currentWord,
-                userInput: userInput,
-                userKana: userKana,
-                correctKana: correctKana
+    // 绑定折叠、勾选、次数设置等事件
+    bindEvents() {
+        // 折叠/展开
+        document.querySelectorAll('.section-header').forEach(header => {
+            header.addEventListener('click', function(e) {
+                if (e.target.tagName === 'INPUT') return;
+                const icon = header.querySelector('.collapse-icon');
+                const content = header.nextElementSibling;
+                if (content) {
+                    content.classList.toggle('collapsed');
+                    icon.classList.toggle('collapsed');
+                }
             });
-        }
-
-        // 显示反馈
-        this.showFeedback(isCorrect, points);
-        
-        // 禁用输入
-        romajiInput.disabled = true;
-        document.getElementById('submitBtn').disabled = true;
+        });
+        // 勾选事件
+        document.querySelectorAll('.word-checkbox').forEach(cb => {
+            cb.addEventListener('change', e => {
+                const wordId = cb.getAttribute('data-word-id');
+                if (cb.checked) {
+                    this.selectedWords.set(wordId, { repeatCount: 1 });
+                } else {
+                    this.selectedWords.delete(wordId);
+                }
+                this.updateSelectedCount();
+            });
+        });
+        // 次数按钮
+        document.querySelectorAll('.repeat-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                const wordId = btn.getAttribute('data-word-id');
+                const action = btn.getAttribute('data-action');
+                let info = this.selectedWords.get(wordId);
+                if (!info) {
+                    // 自动勾选
+                    this.selectedWords.set(wordId, { repeatCount: 1 });
+                    document.querySelector(`.word-checkbox[data-word-id="${wordId}"]`).checked = true;
+                    info = this.selectedWords.get(wordId);
+                }
+                let count = info.repeatCount || 1;
+                if (action === 'inc') count++;
+                if (action === 'dec' && count > 1) count--;
+                info.repeatCount = count;
+                document.getElementById(`repeat-${wordId}`).textContent = count;
+                this.selectedWords.set(wordId, info);
+                this.updateSelectedCount();
+            });
+        });
+        // 课程全选
+        document.querySelectorAll('.lesson-checkbox').forEach((cb, idx) => {
+            cb.addEventListener('change', e => {
+                const lessonSection = cb.closest('.collapsible-section');
+                lessonSection.querySelectorAll('.section-checkbox').forEach(secCb => {
+                    secCb.checked = cb.checked;
+                    secCb.dispatchEvent(new Event('change'));
+                });
+                lessonSection.querySelectorAll('.word-checkbox').forEach(wordCb => {
+                    wordCb.checked = cb.checked;
+                    wordCb.dispatchEvent(new Event('change'));
+                });
+            });
+        });
+        // 栏目全选
+        document.querySelectorAll('.section-checkbox').forEach(cb => {
+            cb.addEventListener('change', e => {
+                const sectionDiv = cb.closest('.collapsible-section');
+                sectionDiv.querySelectorAll('.word-checkbox').forEach(wordCb => {
+                    wordCb.checked = cb.checked;
+                    wordCb.dispatchEvent(new Event('change'));
+                });
+            });
+        });
     }
 
-    // 计算得分
-    calculatePoints() {
-        let basePoints = 10;
-        
-        // 难度加成
-        basePoints += (this.currentWord.difficulty - 1) * 5;
-        
-        // 提示扣分
-        if (this.hintShown) {
-            basePoints = Math.max(basePoints - 5, 1);
-        }
-        
-        return basePoints;
+    // 全选/全不选
+    selectAllWords() {
+        document.querySelectorAll('.word-checkbox').forEach(cb => {
+            cb.checked = true;
+            cb.dispatchEvent(new Event('change'));
+        });
     }
-
-    // 显示反馈
-    showFeedback(isCorrect, points) {
-        const feedbackArea = document.getElementById('feedbackArea');
-        const feedbackResult = document.getElementById('feedbackResult');
-        const correctKana = document.getElementById('correctKana');
-        const correctKanji = document.getElementById('correctKanji');
-        const correctRomaji = document.getElementById('correctRomaji');
-
-        // 显示反馈区域
-        feedbackArea.style.display = 'block';
-        feedbackArea.scrollIntoView({ behavior: 'smooth' });
-
-        // 设置反馈结果
-        if (isCorrect) {
-            feedbackResult.className = 'feedback-result correct';
-            feedbackResult.innerHTML = `
-                <span class="result-icon">✓</span>
-                <span class="result-text">正确！+${points}分</span>
-            `;
-        } else {
-            feedbackResult.className = 'feedback-result incorrect';
-            feedbackResult.innerHTML = `
-                <span class="result-icon">✗</span>
-                <span class="result-text">答案错误</span>
-            `;
-        }
-
-        // 显示正确答案
-        if (correctKana) correctKana.textContent = this.currentWord.kana;
-        if (correctKanji) correctKanji.textContent = this.currentWord.kanji || '';
-        if (correctRomaji) {
-            const romaji = this.converter.kanaToRomaji(this.currentWord.kana);
-            correctRomaji.textContent = romaji;
-        }
-
-        // 更新得分显示
-        this.updateScore();
+    deselectAllWords() {
+        document.querySelectorAll('.word-checkbox').forEach(cb => {
+            cb.checked = false;
+            cb.dispatchEvent(new Event('change'));
+        });
     }
-
-    // 清除反馈
-    clearFeedback() {
-        const feedbackArea = document.getElementById('feedbackArea');
-        if (feedbackArea) {
-            feedbackArea.style.display = 'none';
-        }
-        this.clearConversionHint();
-    }
-
-    // 下一个单词
-    nextWord() {
-        this.currentWordIndex++;
-        this.loadCurrentWord();
-    }
-
-    // 显示提示
-    showHint() {
-        if (this.hintShown) return;
-        
-        this.hintShown = true;
-        
-        // 显示汉字
-        const kanjiWord = document.getElementById('kanjiWord');
-        if (kanjiWord && this.currentWord.kanji) {
-            kanjiWord.textContent = this.currentWord.kanji;
-            kanjiWord.style.display = 'block';
-        }
-
-        // 显示提示内容
-        this.displayHintContent();
-    }
-
-    // 显示提示内容
-    displayHintContent() {
-        let hintElement = document.querySelector('.hint-display');
-        
-        if (!hintElement) {
-            hintElement = document.createElement('div');
-            hintElement.className = 'hint-display';
-            const submitSection = document.querySelector('.submit-section');
-            submitSection.parentNode.insertBefore(hintElement, submitSection);
-        }
-
-        const romaji = this.converter.kanaToRomaji(this.currentWord.kana);
-        
-        hintElement.innerHTML = `
-            <div class="hint-content">
-                💡 提示信息
-            </div>
-            <div class="hint-kana">${this.currentWord.kana}</div>
-            <div class="hint-romaji">罗马音: ${romaji}</div>
-        `;
-    }
-
-    // 更新进度显示
-    updateProgress() {
-        const progressElement = document.getElementById('currentWordProgress');
-        if (progressElement) {
-            progressElement.textContent = `${this.currentWordIndex + 1} / ${this.totalQuestions}`;
-        }
-    }
-
-    // 更新得分显示
-    updateScore() {
-        const scoreElement = document.getElementById('currentScore');
-        if (scoreElement) {
-            scoreElement.textContent = this.score;
-        }
-    }
-
-    // 显示最终结果
-    displayResults() {
-        const totalQuestions = document.getElementById('totalQuestions');
-        const correctAnswers = document.getElementById('correctAnswers');
-        const accuracyRate = document.getElementById('accuracyRate');
-        const finalScore = document.getElementById('finalScore');
-        const errorReview = document.getElementById('errorReview');
-        const errorList = document.getElementById('errorList');
-        const reviewBtn = document.getElementById('reviewBtn');
-
-        if (totalQuestions) totalQuestions.textContent = this.totalQuestions;
-        if (correctAnswers) correctAnswers.textContent = this.correctAnswers;
-        if (accuracyRate) {
-            const rate = this.totalQuestions > 0 ? Math.round((this.correctAnswers / this.totalQuestions) * 100) : 0;
-            accuracyRate.textContent = `${rate}%`;
-        }
-        if (finalScore) finalScore.textContent = this.score;
-
-        // 显示错误回顾
-        if (this.errors.length > 0 && errorReview && errorList) {
-            errorReview.style.display = 'block';
-            errorList.innerHTML = this.errors.map(error => `
-                <div class="error-item">
-                    <div class="error-meaning">${error.word.meaning}</div>
-                    <div class="error-details">
-                        你的输入: <span class="your-answer">${error.userInput}</span> → ${error.userKana || '(无效)'}<br>
-                        正确答案: <span class="correct-answer-text">${error.word.kana}</span>
-                    </div>
-                </div>
-            `).join('');
-            
-            if (reviewBtn) reviewBtn.style.display = 'inline-block';
-        } else {
-            if (errorReview) errorReview.style.display = 'none';
-            if (reviewBtn) reviewBtn.style.display = 'none';
-        }
-    }
-
-    // 开始复习模式
-    startReviewMode() {
-        if (this.errors.length === 0) return;
-        
-        // 使用错误的单词创建复习列表
-        this.currentWords = this.errors.map(error => error.word);
-        this.totalQuestions = this.currentWords.length;
-        this.resetStats();
-        this.showPracticeScreen();
-        this.loadCurrentWord();
-    }
-
-    // 罗马音键盘功能
-    toggleKeyboard() {
-        const keyboard = document.getElementById('romajiKeyboard');
-        const toggle = document.querySelector('.keyboard-toggle');
-        
-        if (this.keyboardVisible) {
-            this.closeKeyboard();
-        } else {
-            this.openKeyboard();
-        }
-    }
-
-    openKeyboard() {
-        const keyboard = document.getElementById('romajiKeyboard');
-        const toggle = document.querySelector('.keyboard-toggle');
-        
-        if (keyboard) {
-            keyboard.style.display = 'block';
-            this.keyboardVisible = true;
-        }
-        
-        if (toggle) {
-            toggle.textContent = '⌨️';
-            toggle.style.bottom = '200px'; // 键盘高度之上
-        }
-    }
-
-    closeKeyboard() {
-        const keyboard = document.getElementById('romajiKeyboard');
-        const toggle = document.querySelector('.keyboard-toggle');
-        
-        if (keyboard) {
-            keyboard.style.display = 'none';
-            this.keyboardVisible = false;
-        }
-        
-        if (toggle) {
-            toggle.textContent = '⌨️';
-            toggle.style.bottom = '20px';
-        }
-    }
-
-    // 更新键盘切换按钮
-    updateKeyboardToggle() {
-        // 创建键盘切换按钮
-        if (!document.querySelector('.keyboard-toggle')) {
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'keyboard-toggle';
-            toggleBtn.textContent = '⌨️';
-            toggleBtn.title = '显示/隐藏罗马音键盘';
-            toggleBtn.onclick = () => this.toggleKeyboard();
-            document.body.appendChild(toggleBtn);
-        }
-    }
-
-    // 切换假名类型
-    switchKanaType(event) {
-        document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
-        
-        const kanaType = event.target.dataset.type;
-        this.updateKanaOptions(kanaType);
-    }
-
-    // 更新假名选项
-    updateKanaOptions(kanaType) {
-        const kanaOptions = document.getElementById('kanaOptions');
-        if (!kanaOptions) return;
-
-        const kanaSet = kanaType === 'hiragana' ? this.converter.hiraganaMap : this.converter.katakanaMap;
-        const options = Object.keys(kanaSet).slice(0, 20); // 显示前20个常用假名
-
-        kanaOptions.innerHTML = options.map(romaji => `
-            <button class="kana-option" onclick="selectKana('${romaji}', '${kanaSet[romaji]}')">
-                <div>${kanaSet[romaji]}</div>
-                <div style="font-size: 0.7rem; color: #666;">${romaji}</div>
-            </button>
-        `).join('');
-    }
-
-    // 清空输入
-    clearInput() {
-        const romajiInput = document.getElementById('romajiInput');
-        if (romajiInput) {
-            romajiInput.value = '';
-            romajiInput.disabled = false;
-            romajiInput.classList.remove('input-error', 'input-success');
-            romajiInput.focus();
-        }
-        
-        const submitBtn = document.getElementById('submitBtn');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-        }
-
-        this.clearConversionHint();
+    // 统计已选单词数
+    updateSelectedCount() {
+        const count = this.selectedWords.size;
+        document.getElementById('selectedWordCount').textContent = count;
     }
 }
 
-// 键盘相关函数
-function addRomaji(romaji) {
-    const input = document.getElementById('romajiInput');
-    if (input && !input.disabled) {
-        input.value += romaji;
-        input.dispatchEvent(new Event('input')); // 触发input事件
-        input.focus();
-    }
-}
+// 全选/全不选按钮绑定
+window.selectAllWords = function() {
+    if (window.wordTypingSelector) window.wordTypingSelector.selectAllWords();
+};
+window.deselectAllWords = function() {
+    if (window.wordTypingSelector) window.wordTypingSelector.deselectAllWords();
+};
 
-function addSpace() {
-    const input = document.getElementById('romajiInput');
-    if (input && !input.disabled) {
-        input.value += ' ';
-        input.dispatchEvent(new Event('input'));
-        input.focus();
-    }
-}
-
-function backspaceRomaji() {
-    const input = document.getElementById('romajiInput');
-    if (input && !input.disabled && input.value.length > 0) {
-        input.value = input.value.slice(0, -1);
-        input.dispatchEvent(new Event('input'));
-        input.focus();
-    }
-}
-
-function confirmInput() {
-    const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn && !submitBtn.disabled) {
-        submitAnswer();
-    }
-}
-
-function selectKana(romaji, kana) {
-    const input = document.getElementById('romajiInput');
-    if (input && !input.disabled) {
-        input.value += romaji;
-        input.dispatchEvent(new Event('input'));
-        input.focus();
-    }
-}
-
-function closeKeyboard() {
-    if (window.wordApp) {
-        window.wordApp.closeKeyboard();
-    }
-}
-
-// 全局函数 (供HTML调用)
-function startWordPractice() {
-    if (window.wordApp) {
-        window.wordApp.startWordPractice();
-    }
-}
-
-function backToMenu() {
-    if (window.wordApp) {
-        window.wordApp.backToMenu();
-    }
-}
-
-function submitAnswer() {
-    if (window.wordApp) {
-        window.wordApp.submitAnswer();
-    }
-}
-
-function nextWord() {
-    if (window.wordApp) {
-        window.wordApp.nextWord();
-    }
-}
-
-function showHint() {
-    if (window.wordApp) {
-        window.wordApp.showHint();
-    }
-}
-
-function clearInput() {
-    if (window.wordApp) {
-        window.wordApp.clearInput();
-    }
-}
-
-function startReviewMode() {
-    if (window.wordApp) {
-        window.wordApp.startReviewMode();
-    }
-}
-
-// 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    window.wordApp = new WordTypingApp();
+    window.wordTypingSelector = new WordTypingSelector();
 });
