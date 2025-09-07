@@ -7,38 +7,89 @@ class WordTypingSelector {
     }
 
     async init() {
-        await this.loadAllVocabulary();
-        this.renderCourseList();
-        this.updateSelectedCount();
+        console.log('WordTypingSelector 开始初始化...');
+        try {
+            await this.loadAllVocabulary();
+            console.log('词汇数据加载完成，开始渲染');
+            this.renderCourseList();
+            this.updateSelectedCount();
+            console.log('WordTypingSelector 初始化完成');
+        } catch (error) {
+            console.error('WordTypingSelector 初始化失败:', error);
+            // 显示错误信息到页面
+            const container = document.getElementById('wordCourseList');
+            if (container) {
+                container.innerHTML = `
+                    <div style="color: red; padding: 20px; border: 2px solid red; border-radius: 8px; background: #fff5f5;">
+                        <h4>❌ 数据加载失败</h4>
+                        <p><strong>错误信息:</strong> ${error.message}</p>
+                        <p><strong>建议:</strong></p>
+                        <ul>
+                            <li>检查是否已启动本地服务器</li>
+                            <li>确认 data/vocabulary/ 目录下的CSV文件存在</li>
+                            <li>按F12查看控制台更多错误信息</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
     }
 
     // 加载所有课程的单词，按课程/栏目/单词三级分组
     async loadAllVocabulary() {
+        console.log('开始加载词汇数据...');
+        
         if (!window.vocabularyManager) {
+            console.log('vocabularyManager 不存在，等待加载...');
             await new Promise(resolve => {
                 const check = () => {
-                    if (window.vocabularyManager) resolve();
-                    else setTimeout(check, 100);
+                    if (window.vocabularyManager) {
+                        console.log('vocabularyManager 已加载');
+                        resolve();
+                    } else {
+                        console.log('继续等待 vocabularyManager...');
+                        setTimeout(check, 100);
+                    }
                 };
                 check();
             });
         }
+        
+        console.log('vocabularyManager 可用，等待初始化完成...');
+        
+        // 等待vocabulary-manager初始化完成
+        try {
+            await window.vocabularyManager.waitForInitialization();
+            console.log('vocabularyManager 初始化完成，开始获取课程名...');
+        } catch (error) {
+            console.error('等待vocabularyManager初始化失败:', error);
+            throw new Error('vocabularyManager初始化失败');
+        }
+        
         // 获取所有课程名
         let lessons = [];
         try {
             lessons = await window.vocabularyManager.getAllLessonNames();
+            console.log('获取到课程列表:', lessons);
         } catch (e) {
+            console.error('获取课程名失败:', e);
             lessons = [];
         }
+        
         this.vocabData = {};
         let hasData = false;
+        
         for (const lesson of lessons) {
+            console.log(`加载课程: ${lesson}`);
             let words = [];
             try {
                 words = await window.vocabularyManager.loadLessonVocabulary(lesson);
+                console.log(`课程 ${lesson} 加载了 ${words.length} 个单词`);
             } catch (e) {
+                console.error(`课程 ${lesson} 加载失败:`, e);
                 words = [];
             }
+            
             for (const word of words) {
                 hasData = true;
                 const section = word.category || '未分类';
@@ -47,6 +98,10 @@ class WordTypingSelector {
                 this.vocabData[lesson][section].push(word);
             }
         }
+        
+        console.log('最终加载的数据结构:', this.vocabData);
+        console.log('是否有数据:', hasData);
+        
         // fallback: 若无数据，显示夸张报错信息
         if (!hasData) {
             throw new Error('【致命错误】未能加载任何单词数据！请检查词汇文件、数据源或 vocabularyManager 是否正常！\n\n【FATAL ERROR】NO VOCABULARY DATA LOADED!\n请联系开发者或检查数据配置。');

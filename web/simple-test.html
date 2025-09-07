@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单测试</title>
+</head>
+<body>
+    <h1>词汇管理器测试</h1>
+    <div id="status">正在初始化...</div>
+    
+    <script src="vocabulary-manager.js"></script>
+    <script>
+        async function simpleTest() {
+            const status = document.getElementById('status');
+            
+            try {
+                status.innerHTML = '等待vocabulary-manager初始化...';
+                
+                // 等待初始化
+                if (window.vocabularyManager && window.vocabularyManager.waitForInitialization) {
+                    await window.vocabularyManager.waitForInitialization();
+                    status.innerHTML = '✅ vocabulary-manager初始化完成';
+                    
+                    // 测试获取课程
+                    const lessons = window.vocabularyManager.getAllLessonNames();
+                    status.innerHTML += `<br>📚 找到 ${lessons.length} 个课程`;
+                    
+                    if (lessons.length > 0) {
+                        status.innerHTML += `<br>📝 课程列表: ${lessons.slice(0, 5).join(', ')}${lessons.length > 5 ? '...' : ''}`;
+                        
+                        // 测试加载一个课程
+                        const words = await window.vocabularyManager.loadLessonVocabulary(lessons[0]);
+                        status.innerHTML += `<br>🔤 ${lessons[0]} 有 ${words.length} 个单词`;
+                        
+                        if (words.length > 0) {
+                            status.innerHTML += `<br>🌟 示例: ${words[0].meaning} (${words[0].kana})`;
+                        }
+                    } else {
+                        status.innerHTML += '<br>❌ 没有找到任何课程';
+                    }
+                } else {
+                    status.innerHTML = '❌ vocabulary-manager未正确加载';
+                }
+            } catch (error) {
+                status.innerHTML = `❌ 错误: ${error.message}`;
+                console.error('测试失败:', error);
+            }
+        }
+        
+        // 延迟执行测试
+        setTimeout(simpleTest, 1000);
+    </script>
+</body>
+</html>

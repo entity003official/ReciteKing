@@ -5,26 +5,33 @@ class VocabularyDataManager {
         this.categoryData = new Map(); // 存储每个课程的栏目数据
         this.isLoading = false;
         this.loadedLessons = new Set();
+        this.isInitialized = false; // 添加初始化标志
         
         this.initializeManager();
     }
 
     async initializeManager() {
         console.log('开始初始化词汇管理器...');
-        await this.loadVocabularyIndex();
-        this.setupSelectionHandlers();
-        console.log('词汇管理器初始化完成');
+        try {
+            await this.loadVocabularyIndex();
+            this.setupSelectionHandlers();
+            this.isInitialized = true; // 标记初始化完成
+            console.log('词汇管理器初始化完成');
+        } catch (error) {
+            console.error('词汇管理器初始化失败:', error);
+            this.isInitialized = false;
+        }
     }
 
     // 加载词汇索引文件
     async loadVocabularyIndex() {
         try {
             console.log('尝试加载词汇索引文件...');
-            // 尝试相对路径（从web目录访问上级目录的data）
-            let response = await fetch('../data/vocabulary/vocabulary_index.csv');
+            // 直接尝试当前目录下的data路径
+            let response = await fetch('data/vocabulary/vocabulary_index.csv');
             if (!response.ok) {
-                console.log('相对路径失败，尝试当前目录下的data路径...');
-                response = await fetch('data/vocabulary/vocabulary_index.csv');
+                console.log('当前目录失败，尝试上级目录...');
+                response = await fetch('../data/vocabulary/vocabulary_index.csv');
             }
             if (!response.ok) {
                 throw new Error(`无法加载词汇索引文件: ${response.status} ${response.statusText}`);
@@ -131,12 +138,12 @@ class VocabularyDataManager {
         }
 
         try {
-            // 尝试相对路径（从web目录访问上级目录的data）
-            let response = await fetch(`../data/vocabulary/${lessonInfo.filename}`);
+            // 直接尝试当前目录下的data路径
+            let response = await fetch(`data/vocabulary/${lessonInfo.filename}`);
             
             if (!response.ok) {
-                // 如果相对路径失败，尝试从当前目录下的data
-                response = await fetch(`data/vocabulary/${lessonInfo.filename}`);
+                // 如果当前目录失败，尝试上级目录
+                response = await fetch(`../data/vocabulary/${lessonInfo.filename}`);
             }
             
             if (!response.ok) {
@@ -386,17 +393,35 @@ class VocabularyDataManager {
 
     // 获取所有课程名
     getAllLessonNames() {
+        if (!this.isInitialized) {
+            console.warn('vocabularyManager尚未初始化完成');
+            return [];
+        }
         return Array.from(this.categoryData.keys());
+    }
+
+    // 等待初始化完成
+    async waitForInitialization() {
+        if (this.isInitialized) {
+            return;
+        }
+        
+        return new Promise(resolve => {
+            const check = () => {
+                if (this.isInitialized) {
+                    resolve();
+                } else {
+                    setTimeout(check, 100);
+                }
+            };
+            check();
+        });
     }
 }
 
 // 全局实例
-window.vocabularyManager = null;
-
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', () => {
-    window.vocabularyManager = new VocabularyDataManager();
-});
+// 立即创建全局实例
+window.vocabularyManager = new VocabularyDataManager();
 
 // 更新栏目选项的全局函数（供HTML调用）
 async function updateCategoryOptions() {

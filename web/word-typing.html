@@ -202,6 +202,22 @@
             justify-content: center;
             margin-top: 20px;
         }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
         .selected-count {
             text-align: center;
             padding: 10px;
@@ -246,6 +262,14 @@
             <div id="wordCourseList"></div>
         </div>
     </div>
+    <script src="vocabulary-manager.js"></script>
     <script src="word-typing.js"></script>
+    <!-- 临时禁用 Service Worker
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js');
+        }
+    </script>
+    -->
 </body>
 </html>

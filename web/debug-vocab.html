@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>详细调试 - 词汇加载</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        .log { margin: 5px 0; padding: 5px; border-left: 3px solid #ccc; }
+        .success { border-color: green; background: #f0fff0; }
+        .error { border-color: red; background: #fff0f0; }
+        .info { border-color: blue; background: #f0f0ff; }
+    </style>
+</head>
+<body>
+    <h1>词汇数据加载详细调试</h1>
+    <div id="logs"></div>
+    
+    <script>
+        const logs = document.getElementById('logs');
+        
+        function addLog(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(div);
+            console.log(message);
+        }
+        
+        async function detailedTest() {
+            addLog('=== 开始详细测试 ===');
+            
+            // 1. 测试基本HTTP访问
+            try {
+                addLog('1. 测试索引文件HTTP访问...');
+                const response = await fetch('data/vocabulary/vocabulary_index.csv');
+                addLog(`HTTP状态: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    const text = await response.text();
+                    addLog(`文件大小: ${text.length} 字符`, 'success');
+                    addLog(`前200字符: ${text.substring(0, 200)}...`, 'info');
+                    
+                    // 解析CSV
+                    const lines = text.trim().split('\n');
+                    addLog(`CSV行数: ${lines.length}`, 'success');
+                    if (lines.length > 1) {
+                        addLog(`标题行: ${lines[0]}`, 'info');
+                        addLog(`第一个课程: ${lines[1]}`, 'info');
+                    }
+                } else {
+                    addLog('无法访问索引文件!', 'error');
+                    return;
+                }
+            } catch (error) {
+                addLog(`HTTP访问失败: ${error.message}`, 'error');
+                return;
+            }
+            
+            // 2. 测试词汇管理器脚本加载
+            addLog('2. 检查vocabulary-manager.js加载状态...');
+            if (typeof VocabularyDataManager !== 'undefined') {
+                addLog('VocabularyDataManager类已加载', 'success');
+            } else {
+                addLog('VocabularyDataManager类未找到!', 'error');
+                return;
+            }
+            
+            if (window.vocabularyManager) {
+                addLog('全局vocabularyManager实例存在', 'success');
+            } else {
+                addLog('全局vocabularyManager实例不存在!', 'error');
+                return;
+            }
+            
+            // 3. 测试vocabularyManager方法
+            addLog('3. 测试vocabularyManager方法...');
+            try {
+                const lessonNames = window.vocabularyManager.getAllLessonNames();
+                addLog(`获取到课程名: ${lessonNames.length}个`, lessonNames.length > 0 ? 'success' : 'error');
+                addLog(`课程列表: ${lessonNames.join(', ')}`, 'info');
+                
+                if (lessonNames.length > 0) {
+                    // 测试加载第一个课程
+                    const firstLesson = lessonNames[0];
+                    addLog(`4. 测试加载课程: ${firstLesson}...`);
+                    const words = await window.vocabularyManager.loadLessonVocabulary(firstLesson);
+                    addLog(`课程${firstLesson}单词数: ${words.length}`, words.length > 0 ? 'success' : 'error');
+                    if (words.length > 0) {
+                        addLog(`示例单词: ${JSON.stringify(words[0])}`, 'info');
+                    }
+                }
+            } catch (error) {
+                addLog(`测试vocabularyManager失败: ${error.message}`, 'error');
+                addLog(`错误堆栈: ${error.stack}`, 'error');
+            }
+            
+            addLog('=== 测试完成 ===');
+        }
+        
+        // 等待页面和脚本加载完成
+        window.addEventListener('load', () => {
+            setTimeout(detailedTest, 500);
+        });
+    </script>
+    
+    <!-- 加载vocabulary-manager脚本 -->
+    <script src="vocabulary-manager.js"></script>
+</body>
+</html>
