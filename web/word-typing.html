@@ -89,6 +89,65 @@
                 font-size: 0.8rem;
             }
         }
+
+        /* 练习状态显示样式 */
+        .status-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f1f8e9 100%);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+            margin-top: 0.5rem;
+        }
+
+        .status-info span {
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        #selectedInfo {
+            font-weight: 600;
+            color: #1976d2;
+        }
+
+        #wordCountInfo {
+            color: #388e3c;
+        }
+
+        /* 设置行样式优化 */
+        .setting-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .setting-row label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .setting-select {
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .setting-select:focus {
+            outline: none;
+            border-color: #2196f3;
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+        }
+
+        .setting-select:hover {
+            border-color: #bdbdbd;
+        }
     </style>
 </head>
 <body>
@@ -119,23 +178,56 @@
             <section class="settings-panel">
                 <h3>⚙️ 练习设置</h3>
                 
+                <!-- 课程选择 -->
                 <div class="setting-row">
-                    <label for="wordDifficulty">难度等级：</label>
-                    <select id="wordDifficulty" class="setting-select">
-                        <option value="1">初级 (基础单词)</option>
-                        <option value="2">中级 (常用单词)</option>
-                        <option value="3">高级 (复杂单词)</option>
-                        <option value="all" selected>全部难度</option>
+                    <label for="lessonSelect">📚 选择课程：</label>
+                    <select id="lessonSelect" class="setting-select" onchange="updateCategoryOptions()">
+                        <option value="all" selected>全部课程</option>
+                        <option value="第一课">第一课 - 初次见面</option>
+                        <option value="第二课">第二课 - 这是什么</option>
+                        <option value="第三课">第三课 - 这里是什么地方</option>
+                        <option value="第四课">第四课 - 时间安排</option>
+                        <option value="第五课">第五课 - 交通出行</option>
+                        <option value="第六课">第六课 - 日常活动</option>
+                        <option value="第七课">第七课 - 授受表现</option>
+                        <option value="第八课">第八课 - 形容词练习</option>
+                        <option value="第九课">第九课 - 喜好表达</option>
+                        <option value="第十课">第十课 - 存在表现</option>
+                        <option value="第十一课">第十一课 - 数量表达</option>
+                        <option value="第十二课">第十二课 - 过去时态</option>
+                        <option value="第十三课">第十三课 - 愿望表达</option>
+                        <option value="第十四课">第十四课 - 进行时态</option>
+                        <option value="第十五课">第十五课 - 许可禁止</option>
+                        <option value="第十六课">第十六课 - 兴趣爱好</option>
+                        <option value="第十七课">第十七课 - 能力可能</option>
+                        <option value="第十八课">第十八课 - 动作顺序</option>
+                        <option value="第十九课">第十九课 - 经验表达</option>
+                        <option value="第二十课">第二十课 - 敬语表现</option>
+                        <option value="第二十一课">第二十一课 - 意见建议</option>
+                        <option value="第二十二课">第二十二课 - 传闻表达</option>
+                        <option value="第二十三课">第二十三课 - 条件假设</option>
+                        <option value="第二十四课">第二十四课 - 敬语综合</option>
+                    </select>
+                </div>
+
+                <!-- 栏目选择 -->
+                <div class="setting-row">
+                    <label for="categorySelect">🗂️ 选择栏目：</label>
+                    <select id="categorySelect" class="setting-select">
+                        <option value="all" selected>全部栏目</option>
                     </select>
                 </div>
 
                 <div class="setting-row">
-                    <label for="wordCategory">单词类型：</label>
+                    <label for="wordCategory">词性筛选：</label>
                     <select id="wordCategory" class="setting-select">
-                        <option value="all" selected>全部类型</option>
+                        <option value="all" selected>全部词性</option>
                         <option value="名词">名词</option>
                         <option value="动词">动词</option>
                         <option value="形容词">形容词</option>
+                        <option value="副词">副词</option>
+                        <option value="代词">代词</option>
+                        <option value="助词">助词</option>
                     </select>
                 </div>
 
@@ -157,6 +249,14 @@
                         <option value="50">50个</option>
                         <option value="all">全部</option>
                     </select>
+                </div>
+
+                <!-- 练习状态显示 -->
+                <div class="setting-row" id="practiceStatus" style="display: none;">
+                    <div class="status-info">
+                        <span id="selectedInfo">当前选择：全部课程</span>
+                        <span id="wordCountInfo">可练习单词：0个</span>
+                    </div>
                 </div>
             </section>
 
@@ -343,6 +443,7 @@
 
     <script src="kana-data.js"></script>
     <script src="romaji-converter.js"></script>
+    <script src="vocabulary-manager.js"></script>
     <script src="word-typing.js"></script>
 </body>
 </html>

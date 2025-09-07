@@ -11,7 +11,8 @@ class WordTypingApp {
         this.totalQuestions = 0;
         this.errors = [];
         this.settings = {
-            difficulty: 'all',
+            lesson: 'all',
+            categoryName: 'all',
             category: 'all',
             mode: 'practice',
             count: 10
@@ -31,6 +32,20 @@ class WordTypingApp {
 
     // 加载单词数据
     async loadWords() {
+        // 等待词汇管理器初始化
+        if (!window.vocabularyManager) {
+            await new Promise(resolve => {
+                const checkManager = () => {
+                    if (window.vocabularyManager) {
+                        resolve();
+                    } else {
+                        setTimeout(checkManager, 100);
+                    }
+                };
+                checkManager();
+            });
+        }
+
         // 检查是否有来自课程选择的单词数据
         const practiceWords = localStorage.getItem('practiceWords');
         const practiceType = localStorage.getItem('practiceType');
@@ -49,17 +64,31 @@ class WordTypingApp {
             }
         }
         
-        // 默认加载 CSV 文件
+        // 默认加载第一课的数据作为示例
         try {
-            const response = await fetch('japanese_words.csv');
-            const text = await response.text();
-            this.words = this.parseCSV(text);
-            console.log(`已加载 ${this.words.length} 个单词`);
+            const words = await window.vocabularyManager.loadLessonVocabulary('第一课');
+            this.words = this.convertVocabularyWords(words);
+            console.log(`已加载默认数据 ${this.words.length} 个单词`);
         } catch (error) {
             console.error('加载单词数据失败:', error);
             // 使用默认单词数据
             this.words = this.getDefaultWords();
         }
+    }
+
+    // 转换词汇管理器的数据格式
+    convertVocabularyWords(vocabularyWords) {
+        return vocabularyWords.map(word => ({
+            kana: word.kana || '',
+            kanji: word.kanji || '',
+            meaning: word.meaning || '',
+            category: word.wordType || '名词',
+            difficulty: this.getDifficultyFromLesson(word.lesson) || 1,
+            wordType: word.wordType || '名词',
+            romaji: word.romaji || '',
+            lesson: word.lesson || '',
+            categoryName: word.category || '基础词汇'
+        }));
     }
 
     // 转换课程单词格式
@@ -146,8 +175,11 @@ class WordTypingApp {
         const value = event.target.value;
         
         switch (setting) {
-            case 'wordDifficulty':
-                this.settings.difficulty = value;
+            case 'lessonSelect':
+                this.settings.lesson = value;
+                break;
+            case 'categorySelect':
+                this.settings.categoryName = value;
                 break;
             case 'wordCategory':
                 this.settings.category = value;
@@ -162,7 +194,8 @@ class WordTypingApp {
     }
 
     // 开始单词练习
-    startWordPractice() {
+    async startWordPractice() {
+        await this.loadPracticeWords();
         this.filterWords();
         this.shuffleWords();
         this.resetStats();
@@ -170,27 +203,36 @@ class WordTypingApp {
         this.loadCurrentWord();
     }
 
-    // 筛选单词
+    // 加载练习单词
+    async loadPracticeWords() {
+        if (!window.vocabularyManager) {
+            console.error('词汇管理器未初始化');
+            this.words = this.getDefaultWords();
+            return;
+        }
+
+        try {
+            const lessonName = this.settings.lesson || 'all';
+            const categoryName = this.settings.categoryName || 'all';
+            const wordType = this.settings.category || 'all';
+            const count = this.settings.count || 10;
+
+            const words = await window.vocabularyManager.getPracticeWords(
+                lessonName, categoryName, wordType, count
+            );
+            
+            this.words = this.convertVocabularyWords(words);
+            console.log(`加载练习单词: ${this.words.length} 个`);
+        } catch (error) {
+            console.error('加载练习单词失败:', error);
+            this.words = this.getDefaultWords();
+        }
+    }
+
+    // 筛选单词（现在主要用于设置当前单词列表）
     filterWords() {
-        let filtered = [...this.words];
-
-        // 按难度筛选
-        if (this.settings.difficulty !== 'all') {
-            const targetDifficulty = parseInt(this.settings.difficulty);
-            filtered = filtered.filter(word => word.difficulty === targetDifficulty);
-        }
-
-        // 按类别筛选
-        if (this.settings.category !== 'all') {
-            filtered = filtered.filter(word => word.category === this.settings.category);
-        }
-
-        // 限制数量
-        if (this.settings.count !== 'all') {
-            filtered = filtered.slice(0, this.settings.count);
-        }
-
-        this.currentWords = filtered;
+        // 现在过滤已在loadPracticeWords中完成，这里只需要设置当前单词列表
+        this.currentWords = [...this.words];
         this.totalQuestions = this.currentWords.length;
     }
 

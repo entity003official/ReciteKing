@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>词汇选择测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .result-area {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .word-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }
+        
+        .word-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0.5rem;
+        }
+        
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 词汇选择功能测试</h1>
+        
+        <div class="test-section">
+            <h3>📚 课程选择</h3>
+            <select id="testLessonSelect" onchange="testUpdateCategories()">
+                <option value="all">全部课程</option>
+                <option value="第一课">第一课</option>
+                <option value="第二课">第二课</option>
+                <option value="第三课">第三课</option>
+                <option value="第四课">第四课</option>
+            </select>
+            
+            <h3>🗂️ 栏目选择</h3>
+            <select id="testCategorySelect">
+                <option value="all">全部栏目</option>
+            </select>
+            
+            <h3>📝 词性选择</h3>
+            <select id="testWordType">
+                <option value="all">全部词性</option>
+                <option value="名词">名词</option>
+                <option value="动词">动词</option>
+                <option value="形容词">形容词</option>
+            </select>
+            
+            <button onclick="testLoadWords()">🔍 测试加载词汇</button>
+        </div>
+        
+        <div class="result-area">
+            <h3>📊 测试结果</h3>
+            <div id="testStatus">点击"测试加载词汇"按钮开始测试</div>
+            <div class="word-list" id="testWordList"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔧 调试信息</h3>
+            <div id="debugInfo"></div>
+            <button onclick="testManagerStatus()">检查管理器状态</button>
+            <button onclick="testLoadIndex()">测试加载索引</button>
+        </div>
+    </div>
+
+    <script src="vocabulary-manager.js"></script>
+    <script>
+        // 测试函数
+        async function testUpdateCategories() {
+            const lessonSelect = document.getElementById('testLessonSelect');
+            const categorySelect = document.getElementById('testCategorySelect');
+            const debugInfo = document.getElementById('debugInfo');
+            
+            const selectedLesson = lessonSelect.value;
+            debugInfo.innerHTML += `<p>选择课程: ${selectedLesson}</p>`;
+            
+            // 清空栏目选项
+            categorySelect.innerHTML = '<option value="all">全部栏目</option>';
+            
+            if (window.vocabularyManager && selectedLesson !== 'all') {
+                try {
+                    const words = await window.vocabularyManager.loadLessonVocabulary(selectedLesson);
+                    const categories = [...new Set(words.map(word => word.category))];
+                    
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
+                    });
+                    
+                    debugInfo.innerHTML += `<p>找到栏目: ${categories.join(', ')}</p>`;
+                } catch (error) {
+                    debugInfo.innerHTML += `<p style="color: red;">加载栏目失败: ${error.message}</p>`;
+                }
+            }
+        }
+        
+        async function testLoadWords() {
+            const lessonSelect = document.getElementById('testLessonSelect');
+            const categorySelect = document.getElementById('testCategorySelect');
+            const wordTypeSelect = document.getElementById('testWordType');
+            const statusDiv = document.getElementById('testStatus');
+            const wordListDiv = document.getElementById('testWordList');
+            
+            if (!window.vocabularyManager) {
+                statusDiv.textContent = '❌ 词汇管理器未初始化';
+                return;
+            }
+            
+            try {
+                statusDiv.textContent = '🔄 正在加载词汇...';
+                
+                const words = await window.vocabularyManager.getFilteredWords(
+                    lessonSelect.value,
+                    categorySelect.value,
+                    wordTypeSelect.value
+                );
+                
+                statusDiv.textContent = `✅ 加载成功！找到 ${words.length} 个单词`;
+                
+                // 显示前10个单词
+                wordListDiv.innerHTML = '';
+                const displayWords = words.slice(0, 10);
+                
+                displayWords.forEach(word => {
+                    const div = document.createElement('div');
+                    div.className = 'word-item';
+                    div.innerHTML = `
+                        <span>${word.kana} (${word.kanji})</span>
+                        <span>${word.meaning}</span>
+                        <span>${word.wordType}</span>
+                    `;
+                    wordListDiv.appendChild(div);
+                });
+                
+                if (words.length > 10) {
+                    const more = document.createElement('div');
+                    more.textContent = `... 还有 ${words.length - 10} 个单词`;
+                    wordListDiv.appendChild(more);
+                }
+                
+            } catch (error) {
+                statusDiv.textContent = `❌ 加载失败: ${error.message}`;
+            }
+        }
+        
+        function testManagerStatus() {
+            const debugInfo = document.getElementById('debugInfo');
+            
+            if (window.vocabularyManager) {
+                debugInfo.innerHTML += '<p>✅ 词汇管理器已初始化</p>';
+                debugInfo.innerHTML += `<p>已加载课程数: ${window.vocabularyManager.categoryData.size}</p>`;
+                debugInfo.innerHTML += `<p>已缓存课程: ${Array.from(window.vocabularyManager.loadedLessons).join(', ')}</p>`;
+            } else {
+                debugInfo.innerHTML += '<p>❌ 词汇管理器未初始化</p>';
+            }
+        }
+        
+        async function testLoadIndex() {
+            const debugInfo = document.getElementById('debugInfo');
+            
+            try {
+                await window.vocabularyManager.loadVocabularyIndex();
+                debugInfo.innerHTML += '<p>✅ 索引重新加载成功</p>';
+            } catch (error) {
+                debugInfo.innerHTML += `<p style="color: red;">❌ 索引加载失败: ${error.message}</p>`;
+            }
+        }
+        
+        // 页面加载完成后等待管理器初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testManagerStatus();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
