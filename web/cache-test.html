@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>缓存测试</title>
+</head>
+<body>
+    <h1>缓存测试页面</h1>
+    <p>当前时间: <span id="time"></span></p>
+    <p>如果看到这个页面，说明服务器正常运行</p>
+    
+    <h2>检查修改是否生效:</h2>
+    <button onclick="checkWordTypingPage()">检查word-typing.html</button>
+    <div id="result"></div>
+    
+    <script>
+        document.getElementById('time').textContent = new Date().toLocaleString();
+        
+        async function checkWordTypingPage() {
+            try {
+                const response = await fetch('word-typing.html?v=' + Date.now());
+                const html = await response.text();
+                const hasUsageGuide = html.includes('使用说明');
+                const hasStartTest = html.includes('开始测试');
+                const hasBackToTop = html.includes('back-to-top');
+                
+                document.getElementById('result').innerHTML = `
+                    <h3>检查结果:</h3>
+                    <p>包含使用说明: ${hasUsageGuide ? '✅' : '❌'}</p>
+                    <p>包含开始测试: ${hasStartTest ? '✅' : '❌'}</p>
+                    <p>包含返回顶部: ${hasBackToTop ? '✅' : '❌'}</p>
+                    <p>HTML长度: ${html.length} 字符</p>
+                `;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `错误: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

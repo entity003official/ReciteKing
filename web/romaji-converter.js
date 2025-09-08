@@ -82,8 +82,8 @@ class RomajiConverter {
             'dya': 'ヂャ', 'dyu': 'ヂュ', 'dyo': 'ヂョ'
         };
         
-        // 促音处理规则
-        this.sokuonRules = ['k', 't', 's', 'p', 'c'];
+        // 促音处理规则 - 可以双写形成促音的辅音
+        this.sokuonRules = ['k', 't', 's', 'p', 'c', 'g', 'z', 'd', 'b', 'j', 'f', 'h', 'm', 'n', 'r', 'w', 'y'];
         
         this.currentInput = '';
         this.currentKanaType = 'hiragana'; // hiragana 或 katakana
@@ -146,10 +146,52 @@ class RomajiConverter {
         return result;
     }
     
-    // 获取可能的假名选择
+    // 获取可能的假名选择（增强版，支持促音）
     getPossibleKana(romaji, kanaType = 'hiragana') {
         const map = kanaType === 'hiragana' ? this.hiraganaMap : this.katakanaMap;
         const possibilities = [];
+        
+        console.log('getPossibleKana 被调用，romaji:', romaji, 'kanaType:', kanaType);
+        
+        // 检查促音的情况
+        if (romaji.length >= 2) {
+            // 检查是否是双写辅音（促音）
+            const lastChar = romaji[romaji.length - 1];
+            const secondLastChar = romaji.length > 1 ? romaji[romaji.length - 2] : '';
+            
+            console.log('检查促音：lastChar=', lastChar, 'secondLastChar=', secondLastChar);
+            
+            // 如果输入了双辅音，提供促音选项
+            if (this.sokuonRules.includes(lastChar) && lastChar === secondLastChar) {
+                const sokuon = kanaType === 'hiragana' ? 'っ' : 'ッ';
+                console.log('发现促音模式，添加促音:', sokuon);
+                possibilities.push({
+                    romaji: romaji,
+                    kana: sokuon,
+                    type: kanaType,
+                    isSokuon: true
+                });
+            }
+            
+            // 检查以双辅音开头的组合（如 kka, tta, ssa 等）
+            if (this.sokuonRules.includes(romaji[0]) && romaji[0] === romaji[1] && romaji.length > 2) {
+                const baseRomaji = romaji.substring(1); // 去掉第一个重复字符
+                console.log('检查促音组合，baseRomaji:', baseRomaji);
+                Object.keys(map).forEach(key => {
+                    if (key.startsWith(baseRomaji.toLowerCase())) {
+                        const sokuon = kanaType === 'hiragana' ? 'っ' : 'ッ';
+                        console.log('找到促音组合:', key, '->', sokuon + map[key]);
+                        possibilities.push({
+                            romaji: romaji,
+                            kana: sokuon + map[key],
+                            type: kanaType,
+                            displayRomaji: romaji[0] + key, // 显示完整的罗马音组合
+                            isSokuonCombo: true
+                        });
+                    }
+                });
+            }
+        }
         
         // 查找以当前输入开头的所有可能
         Object.keys(map).forEach(key => {
@@ -162,10 +204,23 @@ class RomajiConverter {
             }
         });
         
-        // 按长度排序，优先显示完整匹配
+        console.log('总共找到的候选:', possibilities.length, possibilities);
+        
+        // 按优先级排序
         possibilities.sort((a, b) => {
+            // 促音组合优先
+            if (a.isSokuonCombo && !b.isSokuonCombo) return -1;
+            if (!a.isSokuonCombo && b.isSokuonCombo) return 1;
+            
+            // 单独促音其次
+            if (a.isSokuon && !b.isSokuon) return -1;
+            if (!a.isSokuon && b.isSokuon) return 1;
+            
+            // 完整匹配优先
             if (a.romaji === romaji) return -1;
             if (b.romaji === romaji) return 1;
+            
+            // 按长度排序
             return a.romaji.length - b.romaji.length;
         });
         
@@ -200,7 +255,7 @@ class RomajiConverter {
         
         if (katakana.length > 0) {
             suggestions.push({
-                type: 'katakana', 
+                type: 'katakana',
                 title: '片假名',
                 options: katakana
             });
@@ -208,83 +263,31 @@ class RomajiConverter {
         
         return suggestions;
     }
-
-    // 假名转罗马音 (反向转换)
-    kanaToRomaji(kana) {
-        let result = '';
-        let i = 0;
-        
-        while (i < kana.length) {
-            let found = false;
-            
-            // 尝试匹配较长的假名组合 (2-3个字符)
-            for (let len = Math.min(3, kana.length - i); len >= 1; len--) {
-                const kanaChar = kana.substring(i, i + len);
-                
-                // 在平假名映射中查找
-                for (const [romaji, hiragana] of Object.entries(this.hiraganaMap)) {
-                    if (hiragana === kanaChar) {
-                        result += romaji;
-                        i += len;
-                        found = true;
-                        break;
-                    }
-                }
-                
-                if (found) break;
-                
-                // 在片假名映射中查找
-                for (const [romaji, katakana] of Object.entries(this.katakanaMap)) {
-                    if (katakana === kanaChar) {
-                        result += romaji;
-                        i += len;
-                        found = true;
-                        break;
-                    }
-                }
-                
-                if (found) break;
-            }
-            
-            if (!found) {
-                // 如果找不到匹配，保留原字符
-                result += kana[i];
-                i++;
-            }
-        }
-        
-        return result;
+    
+    // 清空当前输入
+    clear() {
+        this.currentInput = '';
     }
-
-    // 获取打字纠错建议
-    getTypingCorrections(input) {
-        const corrections = [];
-        
-        // 常见打字错误修正
-        const errorMap = {
-            'si': 'shi',
-            'ti': 'chi',
-            'tu': 'tsu',
-            'hu': 'fu',
-            'zi': 'ji',
-            'di': 'ji'
-        };
-        
-        if (errorMap[input]) {
-            corrections.push(errorMap[input]);
+    
+    // 设置假名类型
+    setKanaType(type) {
+        if (type === 'hiragana' || type === 'katakana') {
+            this.currentKanaType = type;
         }
-        
-        // 长音处理建议
-        if (input.endsWith('u') && input.length > 1) {
-            const withoutU = input.slice(0, -1);
-            if (this.hiraganaMap[withoutU]) {
-                corrections.push(withoutU + 'u'); // 长音标记
-            }
-        }
-        
-        return corrections;
+    }
+    
+    // 获取当前假名类型
+    getKanaType() {
+        return this.currentKanaType;
     }
 }
 
-// 全局转换器实例
-const romajiConverter = new RomajiConverter();
+// 如果在浏览器环境中，将类添加到全局对象
+if (typeof window !== 'undefined') {
+    window.RomajiConverter = RomajiConverter;
+}
+
+// 如果在 Node.js 环境中，导出类
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = RomajiConverter;
+}

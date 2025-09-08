@@ -39,6 +39,16 @@ class WordTypingSelector {
     async loadAllVocabulary() {
         console.log('开始加载词汇数据...');
         
+        if (window.performanceMonitor) {
+            return window.performanceMonitor.measureOperation('loadAllVocabulary', async () => {
+                return this._loadAllVocabularyInternal();
+            });
+        } else {
+            return this._loadAllVocabularyInternal();
+        }
+    }
+    
+    async _loadAllVocabularyInternal() {
         if (!window.vocabularyManager) {
             console.log('vocabularyManager 不存在，等待加载...');
             await new Promise(resolve => {
@@ -78,6 +88,16 @@ class WordTypingSelector {
         
         this.vocabData = {};
         let hasData = false;
+        
+        // 分析数据加载复杂度
+        if (window.performanceMonitor) {
+            window.performanceMonitor.analyzeComplexity('dataLoading', lessons.length, async (size) => {
+                const testLessons = lessons.slice(0, size);
+                for (const lesson of testLessons) {
+                    await window.vocabularyManager.loadLessonVocabulary(lesson);
+                }
+            });
+        }
         
         for (const lesson of lessons) {
             console.log(`加载课程: ${lesson}`);
@@ -266,7 +286,64 @@ class WordTypingSelector {
     // 统计已选单词数
     updateSelectedCount() {
         const count = this.selectedWords.size;
-        document.getElementById('selectedWordCount').textContent = count;
+        const countElement = document.getElementById('selectedWordCount');
+        const guideCountElement = document.getElementById('selectedCountInGuide');
+        const startBtn = document.getElementById('startTestBtn');
+        const testInfo = document.getElementById('testInfo');
+        
+        if (countElement) countElement.textContent = count;
+        if (guideCountElement) guideCountElement.textContent = count;
+        
+        // 更新开始测试按钮状态
+        if (startBtn && testInfo) {
+            if (count > 0) {
+                startBtn.disabled = false;
+                const totalRepeats = Array.from(this.selectedWords.values()).reduce((sum, word) => sum + (word.repeatCount || 1), 0);
+                testInfo.innerHTML = `已选择 <strong>${count}</strong> 个单词，总练习次数 <strong>${totalRepeats}</strong> 次`;
+            } else {
+                startBtn.disabled = true;
+                testInfo.textContent = '请先选择要练习的单词';
+            }
+        }
+    }
+    
+    // 获取已选择的单词列表（用于测试）
+    getSelectedWordsForTest() {
+        const selectedList = [];
+        for (const [wordId, info] of this.selectedWords) {
+            const [lesson, section, kana, kanji] = wordId.split('|');
+            const wordData = this.findWordData(lesson, section, kana, kanji);
+            if (wordData) {
+                // 不再重复添加，而是添加一次带有完整背诵次数的单词
+                selectedList.push({
+                    ...wordData,
+                    lesson,
+                    section,
+                    repeatCount: info.repeatCount || 1 // 保存背诵次数
+                });
+            }
+        }
+        return selectedList; // 不打乱，让练习页面自己处理
+    }
+    
+    // 查找单词数据
+    findWordData(lesson, section, kana, kanji) {
+        if (this.vocabData[lesson] && this.vocabData[lesson][section]) {
+            return this.vocabData[lesson][section].find(word => 
+                word.kana === kana && word.kanji === kanji
+            );
+        }
+        return null;
+    }
+    
+    // 打乱数组
+    shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
     }
 }
 
@@ -277,6 +354,74 @@ window.selectAllWords = function() {
 window.deselectAllWords = function() {
     if (window.wordTypingSelector) window.wordTypingSelector.deselectAllWords();
 };
+
+// 开始单词测试
+window.startWordTest = function() {
+    if (!window.wordTypingSelector) return;
+    
+    const selectedWords = window.wordTypingSelector.getSelectedWordsForTest();
+    if (selectedWords.length === 0) {
+        alert('请先选择要练习的单词！');
+        return;
+    }
+    
+    // 将选择的单词保存到sessionStorage
+    sessionStorage.setItem('selectedWords', JSON.stringify(selectedWords));
+    
+    // 跳转到单词练习页面
+    window.location.href = 'word-practice.html';
+};
+
+// 预览选择的单词
+window.previewSelectedWords = function() {
+    if (!window.wordTypingSelector) return;
+    
+    const selectedWords = window.wordTypingSelector.getSelectedWordsForTest();
+    if (selectedWords.length === 0) {
+        alert('请先选择要练习的单词！');
+        return;
+    }
+    
+    let preview = '📝 预览选择的单词：\n\n';
+    const wordGroups = {};
+    
+    selectedWords.forEach(word => {
+        const key = `${word.lesson}-${word.section}`;
+        if (!wordGroups[key]) wordGroups[key] = [];
+        wordGroups[key].push(word);
+    });
+    
+    for (const [group, words] of Object.entries(wordGroups)) {
+        preview += `${group}：\n`;
+        words.forEach(word => {
+            preview += `  • ${word.meaning} (${word.kana})\n`;
+        });
+        preview += '\n';
+    }
+    
+    preview += `总计：${selectedWords.length} 个练习项目`;
+    alert(preview);
+};
+
+// 返回顶部功能
+window.scrollToTop = function() {
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+};
+
+// 监听滚动，控制返回顶部按钮显示
+window.addEventListener('scroll', function() {
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    if (backToTopBtn) {
+        if (window.pageYOffset > 300) {
+            backToTopBtn.classList.add('visible');
+        } else {
+            backToTopBtn.classList.remove('visible');
+        }
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     window.wordTypingSelector = new WordTypingSelector();

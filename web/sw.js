@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kana-study-v6';
+const CACHE_NAME = 'kana-study-v8-new-features';
 const urlsToCache = [
   './',
   './index.html',

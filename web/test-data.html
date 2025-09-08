@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>数据加载测试</title>
+</head>
+<body>
+    <h1>词汇数据加载测试</h1>
+    <div id="result"></div>
+    
+    <script src="vocabulary-manager.js"></script>
+    <script>
+        async function testDataLoad() {
+            const result = document.getElementById('result');
+            
+            try {
+                result.innerHTML = '<p>开始测试数据加载...</p>';
+                
+                // 直接测试数据文件访问
+                const response = await fetch('data/vocabulary/vocabulary_index.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status}`);
+                }
+                const text = await response.text();
+                result.innerHTML += `<p>✅ 索引文件加载成功，大小: ${text.length} 字符</p>`;
+                result.innerHTML += `<p>前100字符: ${text.substring(0, 100)}...</p>`;
+                
+                // 测试vocabularyManager初始化
+                if (window.vocabularyManager) {
+                    result.innerHTML += '<p>✅ vocabularyManager 已加载</p>';
+                    
+                    const lessons = await window.vocabularyManager.getAllLessonNames();
+                    result.innerHTML += `<p>✅ 获取到 ${lessons.length} 个课程: ${lessons.join(', ')}</p>`;
+                    
+                    if (lessons.length > 0) {
+                        const words = await window.vocabularyManager.loadLessonVocabulary(lessons[0]);
+                        result.innerHTML += `<p>✅ 课程 ${lessons[0]} 有 ${words.length} 个单词</p>`;
+                        if (words.length > 0) {
+                            result.innerHTML += `<p>示例单词: ${JSON.stringify(words[0], null, 2)}</p>`;
+                        }
+                    }
+                } else {
+                    result.innerHTML += '<p>❌ vocabularyManager 未加载</p>';
+                }
+                
+            } catch (error) {
+                result.innerHTML += `<p style="color: red;">❌ 错误: ${error.message}</p>`;
+                console.error('测试失败:', error);
+            }
+        }
+        
+        // 等待页面加载完成后执行测试
+        window.addEventListener('load', () => {
+            setTimeout(testDataLoad, 100);
+        });
+    </script>
+</body>
+</html>

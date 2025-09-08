@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>测试页面</title>
+</head>
+<body>
+    <h1>这是测试页面</h1>
+    <p>如果你能看到这个，说明服务器工作正常</p>
+    <script>
+        console.log('测试页面已加载');
+        
+        // 测试 vocabulary-manager 是否存在
+        setTimeout(() => {
+            if (window.vocabularyManager) {
+                console.log('vocabularyManager 已加载');
+                document.body.innerHTML += '<p style="color: green;">vocabularyManager 加载成功</p>';
+            } else {
+                console.log('vocabularyManager 未加载');
+                document.body.innerHTML += '<p style="color: red;">vocabularyManager 未加载</p>';
+            }
+        }, 1000);
+    </script>
+    <script src="vocabulary-manager.js"></script>
+</body>
+</html>

@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词练习 - 假名背诵王</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .progress-bar {
+            background: rgba(255,255,255,0.2);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            background: #ffd93d;
+            height: 100%;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .question-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .question-meaning {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .question-info {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        .repeat-info {
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 10px 0;
+            border: 2px solid #b8daff;
+        }
+        .repeat-info.completed {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        .answer-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px 20px;
+            font-size: 1.5rem;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .answer-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+        .answer-input.correct {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .answer-input.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        /* 正确答案显示区域样式 */
+        .correct-answer-display {
+            margin: 15px 0;
+            padding: 15px 20px;
+            background: #ffe6e6;
+            border: 2px solid #ff9999;
+            border-radius: 8px;
+            text-align: center;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        .correct-answer-label {
+            font-size: 1rem;
+            color: #cc0000;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .correct-answer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .correct-answer-kana {
+            font-size: 2rem;
+            color: #990000;
+            font-weight: 700;
+            font-family: 'Arial', sans-serif;
+            line-height: 1.2;
+        }
+        
+        .correct-answer-kanji {
+            font-size: 1.6rem;
+            color: #666666;
+            font-weight: 600;
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
+            line-height: 1.2;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 虚拟键盘样式 */
+        .virtual-keyboard {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .keyboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .keyboard-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .keyboard-switch {
+            padding: 8px 16px;
+            background: #e7f3ff;
+            color: #0066cc;
+            border: 2px solid #b8daff;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 120px;
+        }
+        
+        .keyboard-switch:hover {
+            background: #cce7ff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .keyboard-layout {
+            margin-bottom: 15px;
+        }
+        
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .key-btn {
+            min-width: 40px;
+            height: 40px;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #495057;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .key-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .key-btn:active {
+            transform: translateY(0);
+            background: #dee2e6;
+        }
+        
+        .key-special {
+            background: #6c757d;
+            color: white;
+            min-width: 60px;
+        }
+        
+        .key-special:hover {
+            background: #545b62;
+        }
+        
+        .kana-candidates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+            min-height: 50px;
+            padding: 10px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        .kana-option {
+            padding: 8px 16px;
+            background: #e7f3ff;
+            border: 1px solid #b8daff;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            min-width: 60px;
+        }
+        
+        .kana-option:hover {
+            background: #cce7ff;
+            transform: translateY(-1px);
+        }
+        
+        .kana-option.selected {
+            background: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        
+        .kana-option.selected .kana-romaji {
+            color: #e3f2fd;
+        }
+        
+        .kana-option.selected .kana-text {
+            color: white;
+        }
+        
+        .kana-romaji {
+            font-size: 0.8rem;
+            color: #6c757d;
+            display: block;
+        }
+        
+        .kana-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            display: block;
+        }
+        
+        .current-input {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .input-label {
+            color: #6c757d;
+            margin-right: 8px;
+        }
+        
+        .input-romaji {
+            font-family: monospace;
+            font-weight: 600;
+            color: #495057;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        /* 快捷键样式 */
+        kbd {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: #495057;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        }
+        
+        .keyboard-instructions {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .keyboard-row {
+                gap: 3px;
+            }
+            
+            .key-btn {
+                min-width: 35px;
+                height: 35px;
+                font-size: 0.9rem;
+            }
+            
+            .key-special {
+                min-width: 50px;
+            }
+            
+            .kana-option {
+                min-width: 50px;
+                padding: 6px 12px;
+            }
+            
+            .kana-text {
+                font-size: 1.1rem;
+            }
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .result-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .stat-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        
+        /* 错误显示样式 */
+        .error-display {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .error-display.hidden {
+            display: none !important;
+        }
+        
+        .error-info {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            margin: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        
+        .error-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        
+        .error-answer {
+            margin: 20px 0;
+        }
+        
+        .your-answer {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .correct-answer {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-left: 4px solid #28a745;
+        }
+        
+        .kanji-display {
+            background: #e2e3e5;
+            color: #383d41;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-left: 4px solid #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 练习界面 -->
+        <div id="practiceScreen">
+            <div class="header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h1 style="margin: 0;">🎯 单词练习</h1>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="showPerformancePanel()" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.9rem;">📊 性能</button>
+                        <button class="btn btn-secondary" onclick="exitPractice()">退出练习</button>
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <span id="progressText">题目 1 / 10</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="question-card">
+                <div class="question-meaning" id="questionMeaning">正在加载...</div>
+                <div class="question-info" id="questionInfo"></div>
+                <div class="repeat-info" id="repeatInfo">背诵进度: 1/3</div>
+                <input type="text" class="answer-input" id="answerInput" placeholder="请输入罗马音，空格选择假名..." autocomplete="off">
+                
+                <!-- 虚拟键盘 -->
+                <div id="virtualKeyboard" class="virtual-keyboard">
+                    <!-- 操作说明 -->
+                    <div class="keyboard-instructions">
+                        <div style="font-size: 0.9rem; color: #495057; margin-bottom: 10px; text-align: center;">
+                            💡 <strong>快捷键：</strong> 
+                            直接输入罗马音 | 
+                            <kbd>Tab</kbd> / <kbd>Enter</kbd> 选择假名 | 
+                            <kbd>↑</kbd><kbd>↓</kbd> 切换候选 | 
+                            点击按钮提交答案 | 
+                            <kbd>Esc</kbd> 清空当前输入
+                        </div>
+                        <div style="font-size: 0.8rem; color: #6c757d; text-align: center;">
+                            📝 <strong>促音输入：</strong> 双写辅音可输入促音，如 kk→っk, tt→っt, ss→っs
+                        </div>
+                    </div>
+                    
+                    <div class="keyboard-header">
+                        <span class="keyboard-title">虚拟键盘（辅助工具）</span>
+                        <div class="keyboard-toggle">
+                            <span style="margin-right: 10px; color: #666; font-size: 0.9rem;">假名类型：</span>
+                            <button class="keyboard-switch" id="kanaTypeSwitch" data-type="hiragana" title="点击切换平假名/片假名">あ 平假名</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 英文键盘布局 -->
+                    <div class="keyboard-layout">
+                        <div class="keyboard-row">
+                            <button class="key-btn" data-key="q">Q</button>
+                            <button class="key-btn" data-key="w">W</button>
+                            <button class="key-btn" data-key="e">E</button>
+                            <button class="key-btn" data-key="r">R</button>
+                            <button class="key-btn" data-key="t">T</button>
+                            <button class="key-btn" data-key="y">Y</button>
+                            <button class="key-btn" data-key="u">U</button>
+                            <button class="key-btn" data-key="i">I</button>
+                            <button class="key-btn" data-key="o">O</button>
+                            <button class="key-btn" data-key="p">P</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key-btn" data-key="a">A</button>
+                            <button class="key-btn" data-key="s">S</button>
+                            <button class="key-btn" data-key="d">D</button>
+                            <button class="key-btn" data-key="f">F</button>
+                            <button class="key-btn" data-key="g">G</button>
+                            <button class="key-btn" data-key="h">H</button>
+                            <button class="key-btn" data-key="j">J</button>
+                            <button class="key-btn" data-key="k">K</button>
+                            <button class="key-btn" data-key="l">L</button>
+                        </div>
+                        <div class="keyboard-row">
+                            <button class="key-btn key-special" data-key="backspace">⌫</button>
+                            <button class="key-btn" data-key="z">Z</button>
+                            <button class="key-btn" data-key="x">X</button>
+                            <button class="key-btn" data-key="c">C</button>
+                            <button class="key-btn" data-key="v">V</button>
+                            <button class="key-btn" data-key="b">B</button>
+                            <button class="key-btn" data-key="n">N</button>
+                            <button class="key-btn" data-key="m">M</button>
+                            <button class="key-btn key-special" data-key="clear">清空</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 假名候选区域 -->
+                    <div class="kana-candidates" id="kanaCandidates"></div>
+                    
+                    <!-- 当前输入显示 -->
+                    <div class="current-input" id="currentInput">
+                        <span class="input-label">当前输入：</span>
+                        <span class="input-romaji" id="inputRomaji"></span>
+                    </div>
+                </div>
+                
+                <!-- 正确答案显示区域 -->
+                <div id="correctAnswerDisplay" class="correct-answer-display hidden">
+                    <div class="correct-answer-content">
+                        <div class="correct-answer-kana" id="correctAnswerKana"></div>
+                        <div class="correct-answer-kanji" id="correctAnswerKanji"></div>
+                    </div>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-primary" id="submitBtn" onclick="safeCall('checkAnswer')">提交答案</button>
+                    <button class="btn btn-secondary" onclick="safeCall('showAnswer')">我不会</button>
+                    <button class="btn btn-secondary" onclick="safeCall('skipQuestion')">跳过</button>
+                </div>
+                
+                <!-- 错误答案显示区域 -->
+                <div id="errorDisplay" class="error-display hidden">
+                    <div class="error-info">
+                        <button onclick="continueToNext()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;" title="关闭">✕</button>
+                        <div class="error-title">❌ 答错了</div>
+                        <div class="error-answer">
+                            <div class="your-answer">您的答案: <span id="yourAnswer"></span></div>
+                            <div class="correct-answer">正确答案: <span id="correctAnswerDisplay"></span></div>
+                            <div class="kanji-display">汉字写法: <span id="kanjiDisplay"></span></div>
+                        </div>
+                        <div style="margin: 20px 0;">
+                            <button class="btn btn-primary" onclick="continueToNext()">继续下一题</button>
+                            <button class="btn btn-secondary" onclick="forceExit()" style="margin-left: 10px;">强制退出</button>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666;">按 Enter 或 Escape 键继续</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 结果界面 -->
+        <div id="resultScreen" class="hidden">
+            <div class="result-card">
+                <div class="result-title">🎉 练习完成！</div>
+                <div class="result-stats" id="resultStats"></div>
+                <div class="buttons">
+                    <button class="btn btn-success" onclick="restartPractice()">重新练习</button>
+                    <button class="btn btn-primary" onclick="backToSelection()">返回选择</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="performance-monitor.js"></script>
+    <script src="romaji-converter.js"></script>
+    <script>
+        class WordPractice {
+            constructor() {
+                this.words = [];
+                this.originalWords = []; // 保存原始单词数据，包含背诵次数
+                this.currentIndex = 0;
+                this.correctCount = 0;
+                this.wrongCount = 0;
+                this.skippedCount = 0;
+                this.dontKnowCount = 0; // 改为"我不会"的计数
+                this.currentAnswer = '';
+                this.currentWordData = null; // 当前单词的完整数据
+                
+                // 虚拟键盘相关
+                this.romajiConverter = new RomajiConverter();
+                this.currentRomaji = '';
+                this.currentKanaType = 'hiragana';
+                
+                this.init();
+            }
+            
+            init() {
+                // 强制确保错误显示界面是隐藏的
+                const errorDisplay = document.getElementById('errorDisplay');
+                if (errorDisplay) {
+                    errorDisplay.classList.add('hidden');
+                    errorDisplay.style.display = 'none';
+                    console.log('在init中强制隐藏错误显示界面');
+                }
+                
+                // 从sessionStorage获取选择的单词
+                const savedWords = sessionStorage.getItem('selectedWords');
+                if (!savedWords) {
+                    alert('没有找到选择的单词，返回选择页面');
+                    this.backToSelection();
+                    return;
+                }
+                
+                this.initKeyboard();
+                
+                try {
+                    this.originalWords = JSON.parse(savedWords);
+                    console.log('加载的原始单词数据:', this.originalWords);
+                    
+                    if (this.originalWords.length === 0) {
+                        alert('没有可练习的单词，返回选择页面');
+                        this.backToSelection();
+                        return;
+                    }
+                    
+                    // 创建练习队列，每个单词根据其背诵次数添加多次
+                    this.createPracticeQueue();
+                    console.log('练习队列创建完成，队列长度:', this.words.length);
+                    
+                    this.showCurrentQuestion();
+                    this.bindEvents();
+                } catch (error) {
+                    console.error('初始化练习失败:', error);
+                    alert('练习数据格式错误，返回选择页面');
+                    this.backToSelection();
+                }
+            }
+            
+            // 创建练习队列，根据背诵次数重复添加单词
+            createPracticeQueue() {
+                if (window.performanceMonitor) {
+                    return window.performanceMonitor.measureOperation('createPracticeQueue', () => {
+                        return this._createPracticeQueueInternal();
+                    });
+                } else {
+                    return this._createPracticeQueueInternal();
+                }
+            }
+            
+            _createPracticeQueueInternal() {
+                this.words = [];
+                this.originalWords.forEach((wordData, originalIndex) => {
+                    const repeatCount = wordData.repeatCount || 1;
+                    for (let i = 0; i < repeatCount; i++) {
+                        this.words.push({
+                            ...wordData,
+                            originalIndex: originalIndex,
+                            currentRepeat: i + 1,
+                            totalRepeats: repeatCount,
+                            remainingRepeats: repeatCount - i
+                        });
+                    }
+                });
+                
+                // 测试算法复杂度（仅在性能监控可用时）
+                if (window.performanceMonitor) {
+                    window.performanceMonitor.analyzeComplexity('wordQueueCreation', this.originalWords.length, (size) => {
+                        const testWords = this.originalWords.slice(0, size);
+                        const testQueue = [];
+                        testWords.forEach((wordData, originalIndex) => {
+                            const repeatCount = wordData.repeatCount || 1;
+                            for (let i = 0; i < repeatCount; i++) {
+                                testQueue.push({...wordData, originalIndex});
+                            }
+                        });
+                    });
+                }
+                
+                // 打乱练习顺序
+                this.shuffleArray(this.words);
+                console.log('练习队列创建完成，总题数:', this.words.length);
+            }
+            
+            // 打乱数组
+            shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+            
+            // 初始化虚拟键盘
+            initKeyboard() {
+                // 绑定键盘事件
+                const keyButtons = document.querySelectorAll('.key-btn');
+                keyButtons.forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const key = e.target.dataset.key;
+                        this.handleKeyPress(key);
+                    });
+                });
+                
+                // 绑定假名类型切换
+                const kanaSwitch = document.getElementById('kanaTypeSwitch');
+                kanaSwitch.addEventListener('click', () => {
+                    this.toggleKanaType();
+                });
+                
+                // 初始化按钮样式
+                kanaSwitch.textContent = 'あ 平假名';
+                kanaSwitch.style.background = '#e7f3ff';
+                kanaSwitch.style.color = '#0066cc';
+                
+                // 初始化候选选择状态
+                this.selectedCandidateIndex = 0;
+                
+                // 初始更新显示
+                this.updateCandidates();
+                this.updateCurrentInput();
+            }
+            
+            // 处理虚拟键盘按键
+            handleKeyPress(key) {
+                const input = document.getElementById('answerInput');
+                
+                if (key === 'backspace') {
+                    if (this.currentRomaji.length > 0) {
+                        // 删除当前罗马音的最后一个字符
+                        this.currentRomaji = this.currentRomaji.slice(0, -1);
+                        input.value = input.value.slice(0, -1);
+                    } else {
+                        // 如果没有罗马音，删除输入框的最后一个字符
+                        input.value = input.value.slice(0, -1);
+                    }
+                } else if (key === 'clear') {
+                    this.currentRomaji = '';
+                    input.value = '';
+                } else if (/^[a-zA-Z]$/.test(key)) {
+                    this.currentRomaji += key.toLowerCase();
+                    input.value += key.toLowerCase();
+                }
+                
+                this.updateCandidates();
+                this.updateCurrentInput();
+            }
+            
+            // 切换假名类型
+            toggleKanaType() {
+                this.currentKanaType = this.currentKanaType === 'hiragana' ? 'katakana' : 'hiragana';
+                const switchBtn = document.getElementById('kanaTypeSwitch');
+                if (this.currentKanaType === 'hiragana') {
+                    switchBtn.textContent = 'あ 平假名';
+                    switchBtn.style.background = '#e7f3ff';
+                    switchBtn.style.color = '#0066cc';
+                } else {
+                    switchBtn.textContent = 'ア 片假名';
+                    switchBtn.style.background = '#fff3e0';
+                    switchBtn.style.color = '#ff6600';
+                }
+                switchBtn.dataset.type = this.currentKanaType;
+                this.updateCandidates();
+                console.log('切换假名类型到:', this.currentKanaType);
+            }
+            
+            // 更新假名候选
+            updateCandidates() {
+                const candidatesDiv = document.getElementById('kanaCandidates');
+                candidatesDiv.innerHTML = '';
+                
+                if (this.currentRomaji.length === 0) {
+                    candidatesDiv.innerHTML = '<div style="color: #6c757d; text-align: center; padding: 15px;">输入罗马音字母，↑↓选择假名，Tab/Enter确认，点击按钮提交<br><small>💡 双写辅音输入促音：kk→っ, tt→っ, ss→っ</small></div>';
+                    this.selectedCandidateIndex = 0;
+                    return;
+                }
+                
+                const possibilities = this.romajiConverter.getPossibleKana(this.currentRomaji, this.currentKanaType);
+                
+                if (possibilities.length === 0) {
+                    candidatesDiv.innerHTML = '<div style="color: #dc3545; text-align: center; padding: 15px;">没有匹配的假名</div>';
+                    this.selectedCandidateIndex = 0;
+                    return;
+                }
+                
+                // 确保选择索引在有效范围内
+                if (this.selectedCandidateIndex >= possibilities.length) {
+                    this.selectedCandidateIndex = 0;
+                } else if (this.selectedCandidateIndex < 0) {
+                    this.selectedCandidateIndex = possibilities.length - 1;
+                }
+                
+                possibilities.forEach((option, index) => {
+                    const optionDiv = document.createElement('div');
+                    optionDiv.className = 'kana-option';
+                    
+                    // 高亮当前选择的候选
+                    if (index === this.selectedCandidateIndex) {
+                        optionDiv.classList.add('selected');
+                    }
+                    
+                    // 为当前选择的选项添加快捷键提示
+                    let shortcutHint = '';
+                    if (index === this.selectedCandidateIndex) {
+                        shortcutHint = ' <span style="color: #28a745; font-size: 0.7rem;">[Tab/Enter确认]</span>';
+                    }
+                    
+                    // 处理促音显示
+                    let displayRomaji = option.displayRomaji || option.romaji;
+                    let specialHint = '';
+                    
+                    if (option.isSokuon) {
+                        specialHint = ' <span style="color: #ff6600; font-size: 0.7rem;">[促音]</span>';
+                    } else if (option.isSokuonCombo) {
+                        specialHint = ' <span style="color: #ff6600; font-size: 0.7rem;">[促音组合]</span>';
+                    }
+                    
+                    optionDiv.innerHTML = `
+                        <span class="kana-romaji">${displayRomaji}${shortcutHint}${specialHint}</span>
+                        <span class="kana-text">${option.kana}</span>
+                    `;
+                    
+                    optionDiv.addEventListener('click', () => {
+                        this.selectedCandidateIndex = index;
+                        this.selectKana(option.kana);
+                    });
+                    
+                    candidatesDiv.appendChild(optionDiv);
+                });
+            }
+            
+            // 选择假名（虚拟键盘点击）
+            selectKana(kana) {
+                this.selectKanaFromKeyboard(kana);
+            }
+            
+            // 更新当前输入显示
+            updateCurrentInput() {
+                const romajiSpan = document.getElementById('inputRomaji');
+                romajiSpan.textContent = this.currentRomaji || '(空)';
+            }
+            
+            // 处理物理键盘输入
+            handlePhysicalInput(fullValue) {
+                // 分析输入内容，提取罗马音部分
+                const parts = this.analyzeInput(fullValue);
+                this.currentRomaji = parts.currentRomaji;
+                
+                this.updateCandidates();
+                this.updateCurrentInput();
+            }
+            
+            // 分析输入内容，分离已转换的假名和当前的罗马音
+            analyzeInput(fullValue) {
+                let convertedKana = '';
+                let currentRomaji = '';
+                let tempRomaji = '';
+                
+                for (let i = 0; i < fullValue.length; i++) {
+                    const char = fullValue[i];
+                    
+                    // 如果是假名字符，直接添加到转换结果
+                    if (this.isKanaCharacter(char)) {
+                        convertedKana += char;
+                        tempRomaji = '';
+                    } else if (/^[a-zA-Z]$/.test(char)) {
+                        tempRomaji += char.toLowerCase();
+                    }
+                }
+                
+                currentRomaji = tempRomaji;
+                
+                return {
+                    convertedKana,
+                    currentRomaji
+                };
+            }
+            
+            // 检查是否是假名字符
+            isKanaCharacter(char) {
+                const code = char.charCodeAt(0);
+                // 平假名范围: 0x3040-0x309F
+                // 片假名范围: 0x30A0-0x30FF
+                return (code >= 0x3040 && code <= 0x309F) || (code >= 0x30A0 && code <= 0x30FF);
+            }
+            
+            // 检查是否有有效的假名候选
+            hasValidCandidates() {
+                if (this.currentRomaji.length === 0) return false;
+                const possibilities = this.romajiConverter.getPossibleKana(this.currentRomaji, this.currentKanaType);
+                return possibilities.length > 0;
+            }
+            
+            // 移动候选选择
+            moveCandidateSelection(direction) {
+                if (!this.hasValidCandidates()) return;
+                
+                const possibilities = this.romajiConverter.getPossibleKana(this.currentRomaji, this.currentKanaType);
+                this.selectedCandidateIndex += direction;
+                
+                // 循环选择
+                if (this.selectedCandidateIndex >= possibilities.length) {
+                    this.selectedCandidateIndex = 0;
+                } else if (this.selectedCandidateIndex < 0) {
+                    this.selectedCandidateIndex = possibilities.length - 1;
+                }
+                
+                this.updateCandidates();
+            }
+            
+            // 选择当前高亮的候选
+            selectCurrentCandidate() {
+                if (!this.hasValidCandidates()) return;
+                
+                const possibilities = this.romajiConverter.getPossibleKana(this.currentRomaji, this.currentKanaType);
+                if (this.selectedCandidateIndex < possibilities.length) {
+                    const selectedOption = possibilities[this.selectedCandidateIndex];
+                    this.selectKanaFromKeyboard(selectedOption.kana);
+                }
+            }
+            
+            // 选择第一个假名候选
+            selectFirstCandidate() {
+                const firstOption = document.querySelector('.kana-option');
+                if (firstOption) {
+                    const kanaText = firstOption.querySelector('.kana-text').textContent;
+                    this.selectKanaFromKeyboard(kanaText);
+                }
+            }
+            
+            // 选择下一个候选（Tab键功能）
+            selectNextCandidate() {
+                const options = document.querySelectorAll('.kana-option');
+                if (options.length > 1) {
+                    const secondOption = options[1];
+                    const kanaText = secondOption.querySelector('.kana-text').textContent;
+                    this.selectKanaFromKeyboard(kanaText);
+                }
+            }
+            
+            // 通过键盘选择假名
+            selectKanaFromKeyboard(kana) {
+                const input = document.getElementById('answerInput');
+                const currentValue = input.value;
+                
+                // 移除当前的罗马音部分，添加选择的假名
+                const newValue = currentValue.substring(0, currentValue.length - this.currentRomaji.length) + kana;
+                input.value = newValue;
+                
+                this.currentRomaji = '';
+                this.updateCandidates();
+                this.updateCurrentInput();
+                
+                // 将光标移到末尾
+                input.setSelectionRange(input.value.length, input.value.length);
+            }
+            
+            // 清空当前罗马音
+            clearCurrentRomaji() {
+                if (this.currentRomaji.length > 0) {
+                    const input = document.getElementById('answerInput');
+                    const currentValue = input.value;
+                    input.value = currentValue.substring(0, currentValue.length - this.currentRomaji.length);
+                    this.currentRomaji = '';
+                    this.updateCandidates();
+                    this.updateCurrentInput();
+                }
+            }
+            
+            bindEvents() {
+                const input = document.getElementById('answerInput');
+                
+                // 监听键盘输入事件
+                input.addEventListener('input', (e) => {
+                    this.handlePhysicalInput(e.target.value);
+                });
+                
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        // Enter键：只用于假名选择，不用于提交答案
+                        e.preventDefault();
+                        if (this.currentRomaji.length > 0 && this.hasValidCandidates()) {
+                            // 如果有罗马音输入且有有效候选，Enter键选择当前高亮的假名候选
+                            this.selectCurrentCandidate();
+                        }
+                        // 用户必须手动点击提交按钮来提交答案
+                    } else if (e.key === 'Tab') {
+                        // Tab键：选择当前高亮的假名候选
+                        e.preventDefault();
+                        if (this.currentRomaji.length > 0 && this.hasValidCandidates()) {
+                            this.selectCurrentCandidate();
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        // ↑键：向上选择候选
+                        e.preventDefault();
+                        if (this.currentRomaji.length > 0) {
+                            this.moveCandidateSelection(-1);
+                        }
+                    } else if (e.key === 'ArrowDown') {
+                        // ↓键：向下选择候选
+                        e.preventDefault();
+                        if (this.currentRomaji.length > 0) {
+                            this.moveCandidateSelection(1);
+                        }
+                    } else if (e.key === 'Escape') {
+                        // Esc键清空当前输入
+                        this.clearCurrentRomaji();
+                    }
+                });
+                
+                input.focus();
+            }
+            
+            showCurrentQuestion() {
+                if (window.performanceMonitor) {
+                    return window.performanceMonitor.measureOperation('showCurrentQuestion', () => {
+                        return this._showCurrentQuestionInternal();
+                    });
+                } else {
+                    return this._showCurrentQuestionInternal();
+                }
+            }
+            
+            _showCurrentQuestionInternal() {
+                if (this.currentIndex >= this.words.length) {
+                    this.showResult();
+                    return;
+                }
+                
+                const word = this.words[this.currentIndex];
+                console.log('当前显示的单词数据:', word);
+                
+                this.currentWordData = word;
+                this.currentAnswer = word.kana || word.word || '';
+                
+                console.log('设置的正确答案:', this.currentAnswer);
+                
+                document.getElementById('questionMeaning').textContent = word.meaning || '无含义';
+                document.getElementById('questionInfo').textContent = 
+                    `${word.lesson || '未知课程'} · ${word.section || word.category || '未分类'} · ${word.wordType || ''} · 第${word.currentRepeat}/${word.totalRepeats}次`;
+                document.getElementById('repeatInfo').textContent = 
+                    `背诵进度: ${word.currentRepeat}/${word.totalRepeats}`;
+                document.getElementById('progressText').textContent = 
+                    `题目 ${this.currentIndex + 1} / ${this.words.length}`;
+                document.getElementById('progressFill').style.width = 
+                    `${((this.currentIndex) / this.words.length) * 100}%`;
+                
+                const input = document.getElementById('answerInput');
+                input.value = '';
+                input.className = 'answer-input';
+                input.focus();
+                
+                // 重置虚拟键盘状态
+                this.currentRomaji = '';
+                this.selectedCandidateIndex = 0;
+                this.updateCandidates();
+                this.updateCurrentInput();
+                
+                // 重置按钮状态
+                this.resetButtons();
+                
+                // 隐藏正确答案显示区域（为新问题做准备）
+                const correctAnswerDisplay = document.getElementById('correctAnswerDisplay');
+                if (correctAnswerDisplay) {
+                    correctAnswerDisplay.classList.add('hidden');
+                }
+            }
+            
+            checkAnswer() {
+                console.log('checkAnswer 被调用 - 提交答案逻辑');
+                
+                // 检查是否已经初始化完成
+                if (!this.currentWordData || !this.currentAnswer) {
+                    console.log('数据未初始化完成，忽略checkAnswer调用');
+                    return;
+                }
+                
+                const input = document.getElementById('answerInput');
+                const userAnswer = input.value.trim();
+                
+                console.log('用户输入:', userAnswer);
+                
+                // 第一步：检查用户是否输入内容
+                if (!userAnswer) {
+                    alert('请输入答案！');
+                    return;
+                }
+                
+                // 第二步：判断答案正确性
+                if (userAnswer === this.currentAnswer) {
+                    // 用户输入正确：绿色提示，自动跳转下一题
+                    this.correctCount++;
+                    input.className = 'answer-input correct';
+                    
+                    console.log('回答正确!');
+                    
+                    // 更新原始单词数据的背诵次数
+                    const originalWord = this.originalWords[this.currentWordData.originalIndex];
+                    if (originalWord && originalWord.repeatCount > 0) {
+                        originalWord.repeatCount--;
+                        console.log(`单词"${originalWord.meaning}"背诵次数减1，剩余${originalWord.repeatCount}次`);
+                    }
+                    
+                    // 从练习队列中移除相同单词的所有剩余实例
+                    this.removeRemainingInstancesOfCurrentWord();
+                    
+                    // 自动跳转下一题
+                    setTimeout(() => this.nextQuestion(), 1000);
+                } else {
+                    // 用户输入不正确：红色提示，显示正确答案，下一题按钮出现，用户点击下一题用于手动跳转
+                    this.wrongCount++;
+                    input.className = 'answer-input incorrect';
+                    console.log(`回答错误: 用户答案"${userAnswer}" != 正确答案"${this.currentAnswer}"`);
+                    
+                    // 显示绿色正确答案区域（在输入框下方）
+                    // 同时显示假名和汉字，不显示提示文字
+                    const kanjiText = this.currentWordData.kanji || '';
+                    const kanaElement = document.getElementById('correctAnswerKana');
+                    const kanjiElement = document.getElementById('correctAnswerKanji');
+                    const displayElement = document.getElementById('correctAnswerDisplay');
+                    
+                    if (kanaElement && kanjiElement && displayElement) {
+                        kanaElement.textContent = this.currentAnswer; // 假名
+                        kanjiElement.textContent = kanjiText; // 汉字单词
+                        displayElement.classList.remove('hidden');
+                    } else {
+                        console.error('找不到正确答案显示元素');
+                    }
+                    
+                    // 更换按钮为"下一题"
+                    this.updateButtonsForIncorrect();
+                    
+                    // 显示红色错误信息弹窗
+                    this.showErrorDisplay(userAnswer);
+                }
+            }
+            
+            // 移除当前单词在队列中的所有剩余实例（用于正确回答后）
+            removeRemainingInstancesOfCurrentWord() {
+                if (window.performanceMonitor) {
+                    return window.performanceMonitor.measureOperation('removeRemainingInstances', () => {
+                        return this._removeRemainingInstancesInternal();
+                    });
+                } else {
+                    return this._removeRemainingInstancesInternal();
+                }
+            }
+            
+            _removeRemainingInstancesInternal() {
+                const currentWordKey = `${this.currentWordData.lesson}|${this.currentWordData.kana}|${this.currentWordData.kanji}`;
+                const remainingWords = [];
+                
+                for (let i = this.currentIndex + 1; i < this.words.length; i++) {
+                    const word = this.words[i];
+                    const wordKey = `${word.lesson}|${word.kana}|${word.kanji}`;
+                    if (wordKey !== currentWordKey) {
+                        remainingWords.push(word);
+                    }
+                }
+                
+                // 更新队列，移除相同单词的后续实例
+                this.words = this.words.slice(0, this.currentIndex + 1).concat(remainingWords);
+                console.log(`移除单词"${this.currentWordData.meaning}"的剩余练习实例，队列剩余${this.words.length - this.currentIndex - 1}题`);
+            }
+            
+            // 显示正确答案（包括假名内容以及单词内容）
+            showCorrectAnswerDisplay() {
+                console.log('显示正确答案');
+                
+                // 显示正确答案区域（假名和汉字）
+                const kanaElement = document.getElementById('correctAnswerKana');
+                const kanjiElement = document.getElementById('correctAnswerKanji');
+                const displayElement = document.getElementById('correctAnswerDisplay');
+                
+                if (kanaElement && kanjiElement && displayElement) {
+                    kanaElement.textContent = this.currentAnswer;
+                    const kanjiText = this.currentWordData.kanji || '';
+                    kanjiElement.textContent = kanjiText;
+                    displayElement.classList.remove('hidden');
+                } else {
+                    console.error('找不到正确答案显示元素');
+                }
+                
+                // 重置虚拟键盘状态
+                this.currentRomaji = '';
+                this.updateCandidates();
+                this.updateCurrentInput();
+                
+                console.log('正确答案显示区域已显示');
+            }
+            
+            // 显示错误信息弹窗
+            showErrorDisplay(userAnswer) {
+                const yourAnswerElement = document.getElementById('yourAnswer');
+                const correctAnswerElement = document.getElementById('errorDisplay').querySelector('#correctAnswerDisplay');
+                const kanjiDisplayElement = document.getElementById('kanjiDisplay');
+                const errorDisplayElement = document.getElementById('errorDisplay');
+                
+                if (yourAnswerElement && correctAnswerElement && kanjiDisplayElement && errorDisplayElement) {
+                    yourAnswerElement.textContent = userAnswer;
+                    correctAnswerElement.textContent = this.currentAnswer;
+                    kanjiDisplayElement.textContent = this.currentWordData.kanji || '无汉字';
+                    errorDisplayElement.classList.remove('hidden');
+                } else {
+                    console.error('找不到错误显示元素');
+                }
+                
+                // 添加键盘事件监听，按 Enter 或 Escape 键继续下一题
+                const handleKeyPress = (e) => {
+                    if (e.key === 'Enter' || e.key === 'Escape') {
+                        document.removeEventListener('keydown', handleKeyPress);
+                        this.continueToNext();
+                    }
+                };
+                document.addEventListener('keydown', handleKeyPress);
+            }
+            
+            // 继续下一题
+            continueToNext() {
+                console.log('继续下一题被调用');
+                const errorDisplay = document.getElementById('errorDisplay');
+                if (errorDisplay) {
+                    errorDisplay.classList.add('hidden');
+                }
+                
+                // 移除所有可能存在的键盘事件监听器
+                const handleKeyPress = (e) => {
+                    if (e.key === 'Enter' || e.key === 'Escape') {
+                        document.removeEventListener('keydown', handleKeyPress);
+                    }
+                };
+                document.removeEventListener('keydown', handleKeyPress);
+                
+                // 隐藏绿色正确答案区域
+                const correctAnswerDisplay = document.getElementById('correctAnswerDisplay');
+                if (correctAnswerDisplay) {
+                    correctAnswerDisplay.classList.add('hidden');
+                }
+                
+                this.nextQuestion();
+            }
+            
+            showAnswer() {
+                console.log('showAnswer 被调用 - 我不会功能');
+                
+                // 检查是否已经初始化完成
+                if (!this.currentWordData || !this.currentAnswer) {
+                    console.log('数据未初始化完成，忽略showAnswer调用');
+                    return;
+                }
+                
+                // "我不会"按钮点击：按照用户逻辑，这等同于"用户输入不正确"
+                // 增加"我不会"计数
+                this.dontKnowCount++;
+                console.log('dontKnowCount增加到:', this.dontKnowCount);
+                
+                // 显示绿色正确答案区域（在输入框下方）
+                // 同时显示假名和汉字，不显示提示文字
+                const kanjiText = this.currentWordData.kanji || '';
+                const kanaElement = document.getElementById('correctAnswerKana');
+                const kanjiElement = document.getElementById('correctAnswerKanji');
+                const displayElement = document.getElementById('correctAnswerDisplay');
+                
+                if (kanaElement && kanjiElement && displayElement) {
+                    kanaElement.textContent = this.currentAnswer; // 假名
+                    kanjiElement.textContent = kanjiText; // 汉字单词
+                    displayElement.classList.remove('hidden');
+                } else {
+                    console.error('找不到正确答案显示元素');
+                }
+                
+                // 更换按钮为"下一题"
+                this.updateButtonsForIncorrect();
+                
+                // 按照逻辑：用户输入不正确||点击我不会 -> 红色提示，显示正确答案，下一题按钮出现
+                this.showErrorDisplay('我不会');
+                
+                console.log(`单词"${this.currentWordData.meaning}"使用了"我不会"功能，背诵次数保持不变，需要继续练习`);
+            }
+            
+            // 更新按钮状态为不正确状态（错误或我不会）
+            updateButtonsForIncorrect() {
+                const buttonsDiv = document.querySelector('.buttons');
+                buttonsDiv.innerHTML = `
+                    <button class="btn btn-primary" onclick="safeCall('nextQuestion')">下一题</button>
+                    <button class="btn btn-secondary" onclick="safeCall('skipQuestion')">跳过</button>
+                `;
+                console.log('按钮已更新为错误状态：下一题、跳过');
+            }
+            
+            // 重置按钮状态为正常状态
+            resetButtons() {
+                console.log('resetButtons 被调用');
+                const buttonsDiv = document.querySelector('.buttons');
+                if (!buttonsDiv) {
+                    console.error('找不到 .buttons 元素');
+                    return;
+                }
+                
+                buttonsDiv.innerHTML = `
+                    <button class="btn btn-primary" id="submitBtn" onclick="safeCall('checkAnswer')">提交答案</button>
+                    <button class="btn btn-secondary" onclick="safeCall('showAnswer')">我不会</button>
+                    <button class="btn btn-secondary" onclick="safeCall('skipQuestion')">跳过</button>
+                `;
+                console.log('按钮已重置为正常状态，包含"我不会"按钮');
+                
+                // 验证按钮是否正确添加
+                const dontKnowBtn = buttonsDiv.querySelector('button[onclick*="showAnswer"]');
+                if (dontKnowBtn) {
+                    console.log('"我不会"按钮已正确添加');
+                } else {
+                    console.error('"我不会"按钮添加失败');
+                }
+            }
+            
+            skipQuestion() {
+                // 跳过题目：背诵次数不变
+                this.skippedCount++;
+                console.log(`单词"${this.currentWordData.meaning}"被跳过，背诵次数保持不变`);
+                this.nextQuestion();
+            }
+            
+            nextQuestion() {
+                this.currentIndex++;
+                this.showCurrentQuestion();
+            }
+            
+            showResult() {
+                document.getElementById('practiceScreen').classList.add('hidden');
+                document.getElementById('resultScreen').classList.remove('hidden');
+                
+                const total = this.words.length;
+                const accuracy = total > 0 ? Math.round((this.correctCount / total) * 100) : 0;
+                
+                // 计算剩余背诵次数
+                const remainingRepeats = this.originalWords.reduce((sum, word) => sum + (word.repeatCount || 0), 0);
+                
+                document.getElementById('resultStats').innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">${total}</div>
+                        <div class="stat-label">总题数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${this.correctCount}</div>
+                        <div class="stat-label">正确数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${this.wrongCount}</div>
+                        <div class="stat-label">错误数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${this.skippedCount}</div>
+                        <div class="stat-label">跳过数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${this.dontKnowCount}</div>
+                        <div class="stat-label">我不会</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${accuracy}%</div>
+                        <div class="stat-label">正确率</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${remainingRepeats}</div>
+                        <div class="stat-label">剩余次数</div>
+                    </div>
+                `;
+                
+                // 重置按钮区域，清除之前添加的按钮
+                const buttonsDiv = document.querySelector('#resultScreen .buttons');
+                buttonsDiv.innerHTML = `
+                    <button class="btn btn-success" onclick="restartPractice()">重新练习</button>
+                    <button class="btn btn-primary" onclick="backToSelection()">返回选择</button>
+                `;
+                
+                // 如果还有剩余背诵次数，添加继续练习按钮
+                if (remainingRepeats > 0) {
+                    const continueBtn = document.createElement('button');
+                    continueBtn.className = 'btn btn-primary';
+                    continueBtn.textContent = `继续练习 (剩余${remainingRepeats}次)`;
+                    continueBtn.onclick = () => this.continueWithRemaining();
+                    
+                    buttonsDiv.insertBefore(continueBtn, buttonsDiv.firstChild);
+                }
+            }
+            
+            // 继续练习剩余的背诵次数
+            continueWithRemaining() {
+                // 重新创建练习队列，只包含剩余次数大于0的单词
+                const remainingWords = this.originalWords.filter(word => (word.repeatCount || 0) > 0);
+                if (remainingWords.length === 0) {
+                    alert('没有剩余的单词需要练习！');
+                    return;
+                }
+                
+                // 保存剩余单词到sessionStorage并重新开始
+                sessionStorage.setItem('selectedWords', JSON.stringify(remainingWords));
+                this.originalWords = remainingWords;
+                this.currentIndex = 0;
+                this.correctCount = 0;
+                this.wrongCount = 0;
+                this.skippedCount = 0;
+                this.dontKnowCount = 0;
+                
+                this.createPracticeQueue();
+                document.getElementById('resultScreen').classList.add('hidden');
+                document.getElementById('practiceScreen').classList.remove('hidden');
+                this.showCurrentQuestion();
+            }
+            
+            restartPractice() {
+                // 重新开始练习，恢复所有原始背诵次数
+                const originalData = sessionStorage.getItem('selectedWords');
+                if (originalData) {
+                    // 恢复原始数据
+                    this.originalWords = JSON.parse(originalData);
+                    this.currentIndex = 0;
+                    this.correctCount = 0;
+                    this.wrongCount = 0;
+                    this.skippedCount = 0;
+                    this.dontKnowCount = 0;
+                    
+                    this.createPracticeQueue();
+                    document.getElementById('resultScreen').classList.add('hidden');
+                    document.getElementById('practiceScreen').classList.remove('hidden');
+                    this.showCurrentQuestion();
+                }
+            }
+            
+            backToSelection() {
+                window.location.href = 'word-typing.html';
+            }
+        }
+        
+        // 全局函数
+        let practice;
+        
+        // 安全调用函数，确保practice对象已初始化
+        window.safeCall = (methodName) => {
+            console.log(`safeCall 调用方法: ${methodName}`);
+            if (!practice) {
+                console.error('practice对象未初始化');
+                alert('系统正在初始化，请稍后再试');
+                return;
+            }
+            if (typeof practice[methodName] !== 'function') {
+                console.error(`方法 ${methodName} 不存在`);
+                return;
+            }
+            try {
+                practice[methodName]();
+            } catch (error) {
+                console.error(`调用 ${methodName} 时出错:`, error);
+                alert(`操作失败: ${error.message}`);
+            }
+        };
+        
+        window.checkAnswer = () => {
+            if (practice && typeof practice.checkAnswer === 'function') {
+                practice.checkAnswer();
+            } else {
+                console.error('练习模块未正确初始化');
+            }
+        };
+        window.showAnswer = () => {
+            if (practice && typeof practice.showAnswer === 'function') {
+                practice.showAnswer();
+            }
+        };
+        window.nextQuestion = () => {
+            if (practice && typeof practice.nextQuestion === 'function') {
+                practice.nextQuestion();
+            }
+        };
+        window.skipQuestion = () => {
+            if (practice && typeof practice.skipQuestion === 'function') {
+                practice.skipQuestion();
+            }
+        };
+        window.restartPractice = () => {
+            if (practice && typeof practice.restartPractice === 'function') {
+                practice.restartPractice();
+            }
+        };
+        window.backToSelection = () => {
+            if (practice && typeof practice.backToSelection === 'function') {
+                practice.backToSelection();
+            } else {
+                window.location.href = 'word-typing.html';
+            }
+        };
+        window.continueToNext = () => {
+            if (practice && typeof practice.continueToNext === 'function') {
+                practice.continueToNext();
+            }
+        };
+        window.restartPractice = () => {
+            if (practice && typeof practice.restartPractice === 'function') {
+                practice.restartPractice();
+            }
+        };
+        window.backToSelection = () => {
+            if (practice && typeof practice.backToSelection === 'function') {
+                practice.backToSelection();
+            }
+        };
+        window.forceExit = () => {
+            // 强制退出函数，清理所有状态
+            const errorDisplay = document.getElementById('errorDisplay');
+            if (errorDisplay) {
+                errorDisplay.classList.add('hidden');
+            }
+            window.location.href = 'word-typing.html';
+        };
+        window.exitPractice = () => {
+            if (confirm('确定要退出练习吗？进度将不会保存。')) {
+                if (practice && typeof practice.backToSelection === 'function') {
+                    practice.backToSelection();
+                }
+            }
+        };
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM内容加载完成，开始初始化练习模块');
+            
+            // 强制确保错误界面隐藏
+            const errorDisplay = document.getElementById('errorDisplay');
+            if (errorDisplay) {
+                errorDisplay.classList.add('hidden');
+                errorDisplay.style.display = 'none';
+                console.log('强制隐藏错误显示界面');
+            }
+            
+            try {
+                practice = new WordPractice();
+                console.log('练习模块初始化完成');
+            } catch (error) {
+                console.error('练习模块初始化失败:', error);
+                alert('练习模块初始化失败，请刷新页面重试');
+            }
+        });
+    </script>
+</body>
+</html>

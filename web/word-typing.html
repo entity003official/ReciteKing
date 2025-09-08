@@ -146,6 +146,126 @@
             border-radius: 6px;
             background: #fafbff;
         }
+        /* 使用说明样式 */
+        .usage-guide {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .usage-guide h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffd93d;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .usage-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .usage-step {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .usage-step h4 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffd93d;
+        }
+        .usage-step p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: rgba(255,255,255,0.9);
+        }
+        .usage-highlight {
+            color: #ff6b6b;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        .usage-key {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        /* 开始测试按钮 */
+        .start-test-section {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+        }
+        .start-test-btn {
+            background: white;
+            color: #28a745;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 0 10px;
+        }
+        .start-test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            background: #f8f9fa;
+        }
+        .start-test-btn:disabled {
+            background: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-info {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        /* 返回顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .back-to-top:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
         .word-item.selected {
             border-color: #667eea;
             background: #e6f0ff;
@@ -248,10 +368,49 @@
                         <a href="curriculum-selection.html">📚 课程练习</a>
                         <a href="curriculum-stats.html">📊 课程统计</a>
                         <a href="data-manager.html">🔧 数据管理</a>
+                        <button onclick="showPerformancePanel()" style="padding: 0.6rem 1rem; text-decoration: none; color: white; border-radius: 8px; background: rgba(255,255,255,0.2); border: none; cursor: pointer; font-weight: 500; font-size: 0.9rem;">📊 性能监控</button>
                     </div>
                 </div>
             </nav>
         </header>
+        
+        <!-- 使用说明 -->
+        <div class="usage-guide">
+            <h3>📖 使用说明</h3>
+            <div class="usage-steps">
+                <div class="usage-step">
+                    <h4>1️⃣ 选择单词</h4>
+                    <p>勾选想要练习的课程和单词，已选择: <span class="usage-highlight" id="selectedCountInGuide">0</span> 个单词</p>
+                </div>
+                <div class="usage-step">
+                    <h4>2️⃣ 设置次数</h4>
+                    <p>单词右侧的 <span class="usage-key">-1+</span> 按钮用于调整<span class="usage-highlight">背诵次数</span>，数字越大练习越多</p>
+                </div>
+                <div class="usage-step">
+                    <h4>3️⃣ 开始练习</h4>
+                    <p>选好单词后点击下方<span class="usage-highlight">开始测试</span>按钮，进入单词输入练习界面</p>
+                </div>
+                <div class="usage-step">
+                    <h4>4️⃣ 练习模式</h4>
+                    <p>看<span class="usage-highlight">中文释义</span>，输入对应的<span class="usage-highlight">日语假名</span>，系统会自动判断正误</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 开始测试区域 -->
+        <div class="start-test-section">
+            <h3 style="margin: 0 0 15px 0; font-size: 1.4rem;">🚀 开始单词练习</h3>
+            <button class="start-test-btn" id="startTestBtn" onclick="startWordTest()" disabled>
+                开始测试
+            </button>
+            <button class="start-test-btn" onclick="previewSelectedWords()" style="background: #17a2b8; color: white;">
+                预览选择
+            </button>
+            <div class="test-info" id="testInfo">
+                请先选择要练习的单词
+            </div>
+        </div>
+        
         <div class="card settings" id="wordSettingsPanel">
             <h3>单词个性化背诵设置</h3>
             <div class="controls">
@@ -262,14 +421,35 @@
             <div id="wordCourseList"></div>
         </div>
     </div>
+    
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTopBtn" onclick="scrollToTop()">
+        ↑
+    </button>
+    
     <script src="vocabulary-manager.js"></script>
     <script src="word-typing.js"></script>
-    <!-- 临时禁用 Service Worker
+    <script src="performance-monitor.js"></script>
     <script>
+        // 强制更新Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
+            navigator.serviceWorker.register('./sw.js').then(registration => {
+                console.log('Service Worker注册成功');
+                // 强制更新
+                registration.update();
+            });
+        }
+        
+        // 强制刷新缓存
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    if (name.includes('kana-study') && !name.includes('v8')) {
+                        caches.delete(name);
+                    }
+                });
+            });
         }
     </script>
-    -->
 </body>
 </html>
