@@ -1,3 +1,17 @@
+
+    // 验证用户输入的答案
+    function validateAnswer(userInput, correctAnswer) {
+        // 清理用户输入
+        const cleanInput = userInput.trim().toLowerCase();
+        
+        // 处理多个可能的答案（用|分隔）
+        const possibleAnswers = correctAnswer.split('|').map(answer => answer.trim().toLowerCase());
+        
+        // 检查用户输入是否匹配任何一个可能的答案
+        return possibleAnswers.includes(cleanInput);
+    }
+    
+
 // 单词个性化背诵管理器
 class WordTypingSelector {
     constructor() {
@@ -171,8 +185,18 @@ class WordTypingSelector {
                     const wordId = `${lesson}|${section}|${word.kana}|${word.kanji}`;
                     const wordItem = document.createElement('div');
                     wordItem.className = 'word-item';
+                    
+                    // 获取错误次数
+                    const mistakeCount = window.mistakeTracker ? window.mistakeTracker.getMistakeCount(word) : 0;
+                    const hasMistakes = mistakeCount > 0;
+                    
+                    if (hasMistakes) {
+                        wordItem.classList.add('has-mistakes');
+                    }
+                    
                     wordItem.innerHTML = `
                         <input type="checkbox" class="word-checkbox" data-word-id="${wordId}">
+                        ${hasMistakes ? `<div class="mistake-indicator">${mistakeCount}</div>` : ''}
                         <div class="word-info">
                             <span class="word-kana">${word.kana || ''}</span>
                             <span class="word-kanji">${word.kanji || ''}</span>
@@ -345,6 +369,49 @@ class WordTypingSelector {
         }
         return shuffled;
     }
+    
+    // 按错误次数排序
+    sortByMistakes() {
+        const allWords = [];
+        
+        // 收集所有单词和其错误次数
+        for (const lesson in this.vocabData) {
+            for (const section in this.vocabData[lesson]) {
+                for (const word of this.vocabData[lesson][section]) {
+                    const mistakeCount = window.mistakeTracker ? window.mistakeTracker.getMistakeCount(word) : 0;
+                    allWords.push({
+                        lesson,
+                        section,
+                        word,
+                        mistakeCount
+                    });
+                }
+            }
+        }
+        
+        // 按错误次数降序排序
+        allWords.sort((a, b) => b.mistakeCount - a.mistakeCount);
+        
+        // 重新组织数据结构
+        this.vocabData = {};
+        for (const item of allWords) {
+            if (!this.vocabData[item.lesson]) this.vocabData[item.lesson] = {};
+            if (!this.vocabData[item.lesson][item.section]) this.vocabData[item.lesson][item.section] = [];
+            this.vocabData[item.lesson][item.section].push(item.word);
+        }
+        
+        // 重新渲染
+        this.renderCourseList();
+        console.log('已按错误次数排序');
+    }
+    
+    // 按课程排序（恢复原始顺序）
+    async sortByLesson() {
+        console.log('重新按课程顺序加载数据...');
+        await this.loadAllVocabulary();
+        this.renderCourseList();
+        console.log('已恢复课程顺序');
+    }
 }
 
 // 全选/全不选按钮绑定
@@ -353,6 +420,14 @@ window.selectAllWords = function() {
 };
 window.deselectAllWords = function() {
     if (window.wordTypingSelector) window.wordTypingSelector.deselectAllWords();
+};
+
+// 排序功能
+window.sortByMistakes = function() {
+    if (window.wordTypingSelector) window.wordTypingSelector.sortByMistakes();
+};
+window.sortByLesson = function() {
+    if (window.wordTypingSelector) window.wordTypingSelector.sortByLesson();
 };
 
 // 开始单词测试

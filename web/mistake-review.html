@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错题重做 - 假名背诵王</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            min-height: 100vh;
+            color: #333;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .nav-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            margin: -20px -20px 2rem -20px;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 0 0 16px 16px;
+        }
+        .nav-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .nav-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.3rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+        .nav-links a {
+            padding: 0.6rem 1rem;
+            text-decoration: none;
+            color: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .nav-links a.active {
+            background: linear-gradient(45deg, #ffd93d, #ff6b6b);
+            color: #333;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .filter-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .filter-select, .filter-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .mistake-list {
+            max-height: 600px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .mistake-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+        }
+        .mistake-item:hover {
+            background: #f8f9fa;
+        }
+        .mistake-item:last-child {
+            border-bottom: none;
+        }
+        .mistake-checkbox {
+            margin-right: 15px;
+            width: 18px;
+            height: 18px;
+        }
+        .mistake-info {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr 100px 80px;
+            gap: 15px;
+            align-items: center;
+        }
+        .mistake-kana {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .mistake-kanji {
+            color: #666;
+        }
+        .mistake-meaning {
+            color: #888;
+        }
+        .mistake-count {
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .mistake-date {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #999;
+        }
+        .hidden { display: none; }
+        @media (max-width: 768px) {
+            .container { padding: 8px; }
+            .nav-content { flex-direction: column; gap: 10px; }
+            .mistake-info {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .filter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="nav-header">
+                <div class="nav-content">
+                    <h1>🔄 错题重做</h1>
+                    <div class="nav-links">
+                        <a href="index.html">🏠 首页</a>
+                        <a href="word-typing.html">✏️ 单词输入</a>
+                        <a href="curriculum-selection.html">📚 课程练习</a>
+                        <a href="curriculum-stats.html">📊 课程统计</a>
+                        <a href="mistake-review.html" class="active">🔄 错题重做</a>
+                        <a href="data-manager.html">🔧 数据管理</a>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- 统计概览 -->
+        <div class="card">
+            <h3>📊 错题统计概览</h3>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalMistakes">-</div>
+                    <div class="stat-label">错题总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalErrors">-</div>
+                    <div class="stat-label">累计错误次数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="todayErrors">-</div>
+                    <div class="stat-label">今日错题</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="yesterdayErrors">-</div>
+                    <div class="stat-label">昨日错题</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 筛选和控制 -->
+        <div class="card">
+            <h3>🔍 筛选错题</h3>
+            <div class="filter-section">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">按日期筛选</label>
+                        <select class="filter-select" id="dateFilter">
+                            <option value="all">所有错题</option>
+                            <option value="today">今天的错题</option>
+                            <option value="yesterday">昨天的错题</option>
+                            <option value="custom">自定义日期</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">自定义日期</label>
+                        <input type="date" class="filter-input" id="customDate" disabled>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">错误次数筛选</label>
+                        <select class="filter-select" id="errorCountFilter">
+                            <option value="all">所有错误次数</option>
+                            <option value="1">1次错误</option>
+                            <option value="2-3">2-3次错误</option>
+                            <option value="4-5">4-5次错误</option>
+                            <option value="6+">6次以上错误</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">显示数量</label>
+                        <select class="filter-select" id="limitFilter">
+                            <option value="50">显示50个</option>
+                            <option value="100">显示100个</option>
+                            <option value="200">显示200个</option>
+                            <option value="all">显示全部</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="applyFilters()">🔍 应用筛选</button>
+                <button class="btn btn-secondary" onclick="selectAllMistakes()">✅ 全选</button>
+                <button class="btn btn-secondary" onclick="deselectAllMistakes()">❌ 全不选</button>
+                <button class="btn btn-success" onclick="startMistakeReview()" id="startReviewBtn" disabled>🚀 开始重做</button>
+                <button class="btn btn-warning" onclick="downloadMistakeCSV()">📥 下载CSV</button>
+            </div>
+        </div>
+
+        <!-- 错题列表 -->
+        <div class="card">
+            <h3>📝 错题列表 <span id="selectedMistakeCount">(已选择: 0)</span></h3>
+            <div id="mistakeListContainer">
+                <div class="empty-state">
+                    <h3>🔍 正在加载错题数据...</h3>
+                    <p>请稍候</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入必要的脚本 -->
+    <script src="vocabulary-manager.js"></script>
+    <script src="mistake-tracker.js"></script>
+    <script>
+        class MistakeReview {
+            constructor() {
+                this.filteredMistakes = [];
+                this.selectedMistakes = new Set();
+                this.init();
+            }
+
+            async init() {
+                console.log('错题重做页面初始化...');
+                
+                // 等待错题跟踪器初始化
+                if (window.mistakeTracker) {
+                    this.loadStatistics();
+                    this.loadMistakeList();
+                    this.setupEventListeners();
+                } else {
+                    console.error('错题跟踪器未找到');
+                }
+            }
+
+            loadStatistics() {
+                const stats = window.mistakeTracker.getStatistics();
+                
+                document.getElementById('totalMistakes').textContent = stats.totalMistakes;
+                document.getElementById('totalErrors').textContent = stats.totalErrors;
+                document.getElementById('todayErrors').textContent = stats.todayErrors;
+                document.getElementById('yesterdayErrors').textContent = stats.yesterdayErrors;
+            }
+
+            loadMistakeList() {
+                this.applyFilters();
+            }
+
+            setupEventListeners() {
+                // 日期筛选变化
+                document.getElementById('dateFilter').addEventListener('change', (e) => {
+                    const customDate = document.getElementById('customDate');
+                    customDate.disabled = e.target.value !== 'custom';
+                    if (e.target.value === 'custom') {
+                        customDate.value = new Date().toISOString().split('T')[0];
+                    }
+                });
+
+                // 自定义日期变化
+                document.getElementById('customDate').addEventListener('change', () => {
+                    if (document.getElementById('dateFilter').value === 'custom') {
+                        this.applyFilters();
+                    }
+                });
+            }
+
+            applyFilters() {
+                const dateFilter = document.getElementById('dateFilter').value;
+                const customDate = document.getElementById('customDate').value;
+                const errorCountFilter = document.getElementById('errorCountFilter').value;
+                const limitFilter = document.getElementById('limitFilter').value;
+
+                // 获取基础错题数据
+                let mistakes = [];
+                
+                switch (dateFilter) {
+                    case 'today':
+                        mistakes = window.mistakeTracker.getTodaysMistakes();
+                        break;
+                    case 'yesterday':
+                        mistakes = window.mistakeTracker.getYesterdaysMistakes();
+                        break;
+                    case 'custom':
+                        if (customDate) {
+                            mistakes = window.mistakeTracker.getMistakesByDate(customDate);
+                        }
+                        break;
+                    default:
+                        mistakes = window.mistakeTracker.getMostMistakenWords(1000);
+                }
+
+                // 按错误次数筛选
+                if (errorCountFilter !== 'all') {
+                    mistakes = mistakes.filter(word => {
+                        const count = word.mistakeCount;
+                        switch (errorCountFilter) {
+                            case '1': return count === 1;
+                            case '2-3': return count >= 2 && count <= 3;
+                            case '4-5': return count >= 4 && count <= 5;
+                            case '6+': return count >= 6;
+                            default: return true;
+                        }
+                    });
+                }
+
+                // 限制显示数量
+                if (limitFilter !== 'all') {
+                    const limit = parseInt(limitFilter);
+                    mistakes = mistakes.slice(0, limit);
+                }
+
+                this.filteredMistakes = mistakes;
+                this.renderMistakeList();
+            }
+
+            renderMistakeList() {
+                const container = document.getElementById('mistakeListContainer');
+                
+                if (this.filteredMistakes.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>😊 没有找到错题</h3>
+                            <p>根据当前筛选条件没有找到错题，继续加油！</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const listHtml = `
+                    <div class="mistake-list">
+                        ${this.filteredMistakes.map((word, index) => `
+                            <div class="mistake-item">
+                                <input type="checkbox" class="mistake-checkbox" 
+                                       data-word-id="${word.wordId}" 
+                                       onchange="mistakeReview.toggleMistakeSelection('${word.wordId}')">
+                                <div class="mistake-info">
+                                    <div class="mistake-kana">${word.kana || '无假名'}</div>
+                                    <div class="mistake-kanji">${word.kanji || '无汉字'}</div>
+                                    <div class="mistake-meaning">${word.meaning || '无释义'}</div>
+                                    <div class="mistake-count">${word.mistakeCount}次</div>
+                                    <div class="mistake-date">${this.formatDates(word.mistakeDates)}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.innerHTML = listHtml;
+                this.updateSelectedCount();
+            }
+
+            formatDates(dates) {
+                if (!dates || dates.length === 0) return '';
+                const latest = dates[dates.length - 1];
+                const today = new Date().toISOString().split('T')[0];
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                
+                if (latest === today) return '今天';
+                if (latest === yesterday) return '昨天';
+                return latest;
+            }
+
+            toggleMistakeSelection(wordId) {
+                if (this.selectedMistakes.has(wordId)) {
+                    this.selectedMistakes.delete(wordId);
+                } else {
+                    this.selectedMistakes.add(wordId);
+                }
+                this.updateSelectedCount();
+                this.updateStartButton();
+            }
+
+            updateSelectedCount() {
+                const count = this.selectedMistakes.size;
+                document.getElementById('selectedMistakeCount').textContent = `(已选择: ${count})`;
+            }
+
+            updateStartButton() {
+                const btn = document.getElementById('startReviewBtn');
+                btn.disabled = this.selectedMistakes.size === 0;
+            }
+
+            selectAllMistakes() {
+                this.selectedMistakes.clear();
+                this.filteredMistakes.forEach(word => {
+                    this.selectedMistakes.add(word.wordId);
+                });
+                
+                // 更新复选框状态
+                document.querySelectorAll('.mistake-checkbox').forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+                
+                this.updateSelectedCount();
+                this.updateStartButton();
+            }
+
+            deselectAllMistakes() {
+                this.selectedMistakes.clear();
+                
+                // 更新复选框状态
+                document.querySelectorAll('.mistake-checkbox').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                this.updateSelectedCount();
+                this.updateStartButton();
+            }
+
+            startMistakeReview() {
+                if (this.selectedMistakes.size === 0) {
+                    alert('请先选择要重做的错题！');
+                    return;
+                }
+
+                // 获取选中的错题单词
+                const selectedWords = this.filteredMistakes.filter(word => 
+                    this.selectedMistakes.has(word.wordId)
+                );
+
+                // 转换为练习格式
+                const wordsForPractice = selectedWords.map(word => ({
+                    ...word,
+                    repeatCount: 1 // 错题重做每个单词练习1次
+                }));
+
+                // 保存到sessionStorage
+                sessionStorage.setItem('selectedWords', JSON.stringify(wordsForPractice));
+                sessionStorage.setItem('practiceMode', 'mistake-review');
+
+                // 跳转到练习页面
+                window.location.href = 'word-practice.html';
+            }
+
+            downloadMistakeCSV() {
+                if (window.mistakeTracker) {
+                    window.mistakeTracker.downloadMistakeCSV();
+                } else {
+                    alert('错题跟踪器未初始化，无法下载CSV文件');
+                }
+            }
+        }
+
+        // 全局函数
+        window.applyFilters = () => mistakeReview.applyFilters();
+        window.selectAllMistakes = () => mistakeReview.selectAllMistakes();
+        window.deselectAllMistakes = () => mistakeReview.deselectAllMistakes();
+        window.startMistakeReview = () => mistakeReview.startMistakeReview();
+        window.downloadMistakeCSV = () => mistakeReview.downloadMistakeCSV();
+
+        // 初始化
+        const mistakeReview = new MistakeReview();
+    </script>
+</body>
+</html>

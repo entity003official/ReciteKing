@@ -653,6 +653,26 @@
     <script src="performance-monitor.js"></script>
     <script src="romaji-converter.js"></script>
     <script>
+        // 验证用户输入的答案 - 支持多个可能的答案（用|分隔）
+        function validateAnswer(userInput, correctAnswer) {
+            // 清理用户输入
+            const cleanInput = userInput.trim().toLowerCase();
+            
+            // 处理多个可能的答案（用|分隔）
+            const possibleAnswers = correctAnswer.split('|').map(answer => answer.trim().toLowerCase());
+            
+            // 检查用户输入是否匹配任何一个可能的答案
+            return possibleAnswers.includes(cleanInput);
+        }
+        
+        // 加载错题跟踪器
+        if (!window.mistakeTracker) {
+            const script = document.createElement('script');
+            script.src = 'mistake-tracker.js';
+            script.onload = () => console.log('错题跟踪器已加载');
+            document.head.appendChild(script);
+        }
+        
         class WordPractice {
             constructor() {
                 this.words = [];
@@ -1164,7 +1184,7 @@
                 }
                 
                 // 第二步：判断答案正确性
-                if (userAnswer === this.currentAnswer) {
+                if (validateAnswer(userAnswer, this.currentAnswer)) {
                     // 用户输入正确：绿色提示，自动跳转下一题
                     this.correctCount++;
                     input.className = 'answer-input correct';
@@ -1188,6 +1208,11 @@
                     this.wrongCount++;
                     input.className = 'answer-input incorrect';
                     console.log(`回答错误: 用户答案"${userAnswer}" != 正确答案"${this.currentAnswer}"`);
+                    
+                    // 记录错误到错题跟踪器
+                    if (window.mistakeTracker && this.currentWordData) {
+                        window.mistakeTracker.recordMistake(this.currentWordData, 'wrong');
+                    }
                     
                     // 显示绿色正确答案区域（在输入框下方）
                     // 同时显示假名和汉字，不显示提示文字
@@ -1330,6 +1355,11 @@
                 // 增加"我不会"计数
                 this.dontKnowCount++;
                 console.log('dontKnowCount增加到:', this.dontKnowCount);
+                
+                // 记录错误到错题跟踪器
+                if (window.mistakeTracker && this.currentWordData) {
+                    window.mistakeTracker.recordMistake(this.currentWordData, 'dont_know');
+                }
                 
                 // 显示绿色正确答案区域（在输入框下方）
                 // 同时显示假名和汉字，不显示提示文字

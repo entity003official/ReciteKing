@@ -145,6 +145,21 @@
             border: 1px solid #e0e0e0;
             border-radius: 6px;
             background: #fafbff;
+            position: relative;
+        }
+        .word-item.has-mistakes {
+            border-left: 4px solid #ff6b6b;
+            background: linear-gradient(90deg, #ffebee 0%, #fafbff 20%);
+        }
+        .mistake-indicator {
+            background: #ff6b6b;
+            color: white;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
         }
         /* 使用说明样式 */
         .usage-guide {
@@ -367,6 +382,7 @@
                         <a href="word-typing.html" class="active">✏️ 单词输入</a>
                         <a href="curriculum-selection.html">📚 课程练习</a>
                         <a href="curriculum-stats.html">📊 课程统计</a>
+                        <a href="mistake-review.html">🔄 错题重做</a>
                         <a href="data-manager.html">🔧 数据管理</a>
                         <button onclick="showPerformancePanel()" style="padding: 0.6rem 1rem; text-decoration: none; color: white; border-radius: 8px; background: rgba(255,255,255,0.2); border: none; cursor: pointer; font-weight: 500; font-size: 0.9rem;">📊 性能监控</button>
                     </div>
@@ -416,6 +432,8 @@
             <div class="controls">
                 <button class="btn btn-secondary" onclick="selectAllWords()">全选</button>
                 <button class="btn btn-secondary" onclick="deselectAllWords()">全不选</button>
+                <button class="btn btn-secondary" onclick="sortByMistakes()">🔄 按错误次数排序</button>
+                <button class="btn btn-secondary" onclick="sortByLesson()">📚 按课程排序</button>
                 <span class="selected-count">已选择：<span id="selectedWordCount">0</span> 个单词</span>
             </div>
             <div id="wordCourseList"></div>
@@ -428,6 +446,7 @@
     </button>
     
     <script src="vocabulary-manager.js"></script>
+    <script src="mistake-tracker.js"></script>
     <script src="word-typing.js"></script>
     <script src="performance-monitor.js"></script>
     <script>
